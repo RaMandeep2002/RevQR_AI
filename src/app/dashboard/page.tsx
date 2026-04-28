@@ -73,10 +73,12 @@ export default function DashboardPage() {
 
       const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
       const reviewUrl = `${base}/review/${selectedBusiness}`;
-      
+
+      console.log("reviewUrl ---------> ", reviewUrl)
+
       // Generate the raw QR code first
       const rawQrDataUrl = await QRCode.toDataURL(reviewUrl, { width: 400, margin: 1 });
-      
+
       // Enhance it with business branding
       const posterDataUrl = await generateProfessionalQrImage(
         rawQrDataUrl,
