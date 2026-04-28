@@ -163,7 +163,7 @@ export default function AuthPage() {
             </div>
 
             <p className="mt-12 text-center text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
-              © 2024 <span className="text-brand-600">RevQR AI</span> System
+              © 2026 <span className="text-brand-600">RevQR AI</span> System
             </p>
           </div>
         </div>
