@@ -9,7 +9,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-2 text-brand-700">
             <QrCode className="h-6 w-6" />
-            <span className="text-xl font-bold tracking-tight">RevQR AI</span>
+            <span className="text-xl font-bold tracking-tight">QReview</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
             <a href="#features" className="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Features</a>
@@ -26,15 +26,14 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 text-center lg:px-8">
           <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700 ring-1 ring-inset ring-brand-200 mb-8 animate-fade-in">
             <Sparkles className="h-4 w-4" />
-            <span>AI-Powered Review System is Live!</span>
+            <span>AI-Powered Review Management for 2026</span>
           </div>
           <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-7xl">
-            Transform Feedback with <br />
-            <span className="bg-gradient-to-r from-brand-600 to-emerald-500 bg-clip-text text-transparent">AI & QR Codes</span>
+            The Smartest Way to Collect & <br />
+            <span className="bg-gradient-to-r from-brand-600 to-emerald-500 bg-clip-text text-transparent">Manage Reviews with AI.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            The easiest way to collect, manage, and boost your business reviews. 
-            Generate custom QR codes and use AI to help your customers write perfect reviews in seconds.
+            Boost your reputation with QReview. Use AI-powered QR code feedback systems to collect reviews, automate smart replies, and analyze customer sentiment in real-time.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link href="/auth" className="rounded-full bg-brand-600 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-brand-500/20 hover:bg-brand-700 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2">
@@ -48,11 +47,12 @@ export default function HomePage() {
           {/* Hero Image / Mockup Placeholder */}
           <div className="mt-16 rounded-2xl border border-white/40 bg-white/20 p-2 shadow-2xl backdrop-blur-sm lg:mt-24 overflow-hidden">
             <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 className="text-center text-2xl font-bold text-slate-900 mb-8">How our QR Review Platform Works</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
                 {[
-                  { icon: Zap, title: "Instant QR Generation", desc: "Create dynamic QR codes for any business location instantly." },
-                  { icon: Shield, title: "Verified Reviews", desc: "Ensure your feedback comes from real customers at your physical store." },
-                  { icon: Star, title: "AI Assistance", desc: "Gemini AI helps users craft helpful, detailed reviews effortlessly." }
+                  { icon: Zap, title: "QR Code Feedback System", desc: "Create dynamic QR codes for any business location instantly and start collecting contactless feedback." },
+                  { icon: Shield, title: "Google Review Automation", desc: "Automate your feedback loop and boost your Google Maps ranking with verified customer reviews." },
+                  { icon: Star, title: "AI Reputation Management", desc: "Our Gemini AI helps users craft helpful, detailed reviews while you manage everything from a smart dashboard." }
                 ].map((feature, i) => (
                   <div key={i} className="group p-4 rounded-xl hover:bg-slate-50 transition-colors">
                     <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 mb-4 group-hover:scale-110 transition-transform">
@@ -71,15 +71,15 @@ export default function HomePage() {
         <section id="features" className="py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl lg:text-center">
-              <h2 className="text-base font-semibold leading-7 text-brand-600 uppercase tracking-wider">Features</h2>
+              <h2 className="text-base font-semibold leading-7 text-brand-600 uppercase tracking-wider">AI-Driven Insights for Your Business</h2>
               <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Everything you need to grow your reputation</p>
             </div>
             <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
               <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
                 {[
-                  { title: "Business Registration", desc: "Onboard your business in minutes. Manage multiple locations from a single, intuitive dashboard." },
-                  { title: "Smart QR Codes", desc: "Download and print professional QR codes. Track scans and conversion rates in real-time." },
-                  { title: "Sentiment Analysis", desc: "Understand customer satisfaction levels with AI-powered sentiment tracking and analytics." }
+                  { title: "Instant Sentiment Analysis", desc: "Understand customer satisfaction levels instantly with AI-powered sentiment tracking and analytics." },
+                  { title: "Automated Smart Replies", desc: "Use AI to automate business review replies, saving time while maintaining a personal touch with every customer." },
+                  { title: "Contactless Customer Feedback", desc: "Safe, fast, and modern feedback collection via professional QR codes tailored for SMEs." }
                 ].map((feature, i) => (
                   <div key={i} className="flex flex-col border-l-4 border-brand-500 pl-6 py-2 bg-white/50 hover:bg-white transition-colors rounded-r-xl shadow-sm">
                     <dt className="text-lg font-bold leading-7 text-slate-900">{feature.title}</dt>
@@ -100,9 +100,9 @@ export default function HomePage() {
         <section className="relative isolate overflow-hidden bg-slate-900 py-16 sm:py-24 lg:py-32 rounded-[3rem] mx-6">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Boost your business today.</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Boost your business reviews today.</h2>
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-slate-300">
-                Join hundreds of businesses using RevQR AI to streamline their customer feedback loop and increase their star ratings.
+                Join hundreds of businesses using QReview to streamline their customer feedback loop and increase their star ratings.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <Link href="/auth" className="rounded-full bg-white px-8 py-4 text-lg font-semibold text-slate-900 shadow-sm hover:bg-slate-100 transition-colors">
@@ -125,15 +125,16 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 text-brand-700 opacity-80">
             <QrCode className="h-5 w-5" />
-            <span className="text-lg font-bold">RevQR AI</span>
+            <span className="text-lg font-bold">QReview</span>
           </div>
-          <p className="text-sm text-slate-500">© 2026 RevQR AI System. All rights reserved.</p>
+          <p className="text-sm text-slate-500">© 2026 QReview System. All rights reserved.</p>
           <div className="flex gap-6 text-sm font-medium text-slate-600">
             <a href="#" className="hover:text-brand-600 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-brand-600 transition-colors">Terms of Service</a>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
