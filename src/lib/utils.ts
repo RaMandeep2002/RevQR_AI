@@ -61,7 +61,7 @@ export const generateProfessionalQrImage = async (
       // Brand Name
       ctx.fillStyle = "#17673b"; // Brand dark
       ctx.font = "bold 42px sans-serif";
-      ctx.fillText("RevQR AI", canvas.width / 2, 280);
+      ctx.fillText("QReview", canvas.width / 2, 280);
       
       ctx.fillStyle = "#64748b";
       ctx.font = "500 24px sans-serif";
