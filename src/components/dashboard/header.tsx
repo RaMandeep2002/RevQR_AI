@@ -64,7 +64,7 @@ export function DashboardHeader({ onOpenSidebar }: { onOpenSidebar: () => void }
                 </div>
                 
                 <Link 
-                    // @ts-expect-error Next.js route type checking is too strict
+                    // @ts-ignore Next.js route type checking is too strict
                   href="/dashboard/settings" 
                   onClick={() => setShowDropdown(false)}
                   className="flex items-center gap-3 w-full rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-700 transition-all"

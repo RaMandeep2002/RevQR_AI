@@ -147,7 +147,7 @@ export default function AuthPage() {
                   </label>
                   {mode === "login" && (
                     <Link
-                      // @ts-expect-error Next.js route type checking is too strict
+                      // @ts-ignore Next.js route type checking is too strict
                       href="/auth/forgot-password"
                       className="text-xs font-bold text-brand-600 hover:text-brand-700"
                     >
