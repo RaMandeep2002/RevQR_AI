@@ -4,13 +4,16 @@ export type Business = {
   name: string;
   email: string;
   category: string;
-  address: string;
+  google_business_url: string;
+  location: string;
   created_at: string;
 };
 
 export type Review = {
   id: string;
   business_id: string;
+  customer_name: string;
+  customer_email: string;
   stars: number;
   review_text: string;
   created_at: string;

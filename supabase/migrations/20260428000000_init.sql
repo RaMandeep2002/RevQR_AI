@@ -6,13 +6,16 @@ create table if not exists public.businesses (
   name text not null,
   email text not null,
   category text not null,
-  address text not null,
+  google_business_url text not null,
+  location text not null,
   created_at timestamptz not null default now()
 );
 
 create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
   business_id uuid not null references public.businesses(id) on delete cascade,
+  customer_name text not null,
+  customer_email text not null,
   stars integer not null check (stars between 1 and 5),
   review_text text not null,
   created_at timestamptz not null default now()
