@@ -7,6 +7,7 @@ import {
   // ChevronLeft,
   // ChevronRight,
   Download,
+  Maximize,
   MessageSquare,
   Plus,
   QrCode,
@@ -17,7 +18,7 @@ import {
 import { Button, Card } from "@/components/ui";
 import { Modal } from "@/components/modal";
 import { Input } from "@/components/ui/input";
-import { generateProfessionalQrImage } from "@/lib/utils";
+import { applyLogoToQr, generateProfessionalQrImage } from "@/lib/utils";
 import { Business, Review } from "@/types";
 
 type ReviewStat = {
@@ -33,6 +34,14 @@ export default function DashboardOverviewPage() {
   const [stats, setStats] = useState<ReviewStat[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrConfig, setQrConfig] = useState({
+    dark_color: "#111827",
+    light_color: "#ffffff",
+    salt_value: "v1",
+    logo_data_url: "",
+    logo_size_percent: 22,
+    logo_shape: "rounded"
+  });
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -43,6 +52,7 @@ export default function DashboardOverviewPage() {
   });
   const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const fetchData = async () => {
     const [businessRes, reviewRes, statRes] = await Promise.all([
@@ -65,25 +75,53 @@ export default function DashboardOverviewPage() {
   }, []);
 
   useEffect(() => {
+    const fetchCustomization = async () => {
+      if (!selectedBusiness) return;
+      const response = await fetch(`/api/qr-customizations?businessId=${selectedBusiness}`);
+      const json = await response.json();
+      if (!response.ok) return;
+      setQrConfig({
+        dark_color: json.data.dark_color || "#111827",
+        light_color: json.data.light_color || "#ffffff",
+        salt_value: json.data.salt_value || "v1",
+        logo_data_url: json.data.logo_data_url || "",
+        logo_size_percent: Number(json.data.logo_size_percent || 22),
+        logo_shape: json.data.logo_shape || "rounded"
+      });
+    };
+    fetchCustomization();
+  }, [selectedBusiness]);
+
+  useEffect(() => {
     const generate = async () => {
       if (!selectedBusiness) return setQrDataUrl("");
       const business = businesses.find((b) => b.id === selectedBusiness);
       if (!business) return;
       const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-      const reviewUrl = `${base}/review/${selectedBusiness}`;
+      const reviewUrl = `${base}/review/${selectedBusiness}?salt=${encodeURIComponent(qrConfig.salt_value || "v1")}`;
       const rawQrDataUrl = await QRCode.toDataURL(reviewUrl, {
         width: 400,
         margin: 1,
+        color: {
+          dark: qrConfig.dark_color || "#111827",
+          light: qrConfig.light_color || "#ffffff"
+        }
+      });
+      const qrWithLogo = await applyLogoToQr({
+        qrDataUrl: rawQrDataUrl,
+        logoDataUrl: qrConfig.logo_data_url || "",
+        logoSizePercent: Number(qrConfig.logo_size_percent || 22),
+        logoShape: (qrConfig.logo_shape as "square" | "rounded" | "circle") || "rounded"
       });
       const posterDataUrl = await generateProfessionalQrImage(
-        rawQrDataUrl,
+        qrWithLogo,
         business.name,
         business.category,
       );
       setQrDataUrl(posterDataUrl);
     };
     generate();
-  }, [selectedBusiness, businesses]);
+  }, [selectedBusiness, businesses, qrConfig]);
 
   const filteredReviews = useMemo(() => {
     if (!selectedBusiness) return reviews;
@@ -247,13 +285,12 @@ export default function DashboardOverviewPage() {
                       className="h-auto w-48"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 opacity-0 transition-opacity group-hover:opacity-100">
-                      <a
-                        href={qrDataUrl || "#"}
-                        download={`qr-${selectedBusiness || "business"}.png`}
+                      <button
+                        onClick={() => setShowQrModal(true)}
                         className="rounded-full bg-white p-3 text-slate-900 shadow-xl transition-transform hover:scale-110"
                       >
-                        <Download className="h-5 w-5" />
-                      </a>
+                        <Maximize className="h-5 w-5" />
+                      </button>
                     </div>
                   </div>
                   <div className="w-full space-y-4 md:max-w-sm">
@@ -441,6 +478,35 @@ export default function DashboardOverviewPage() {
           <p className="mt-1 text-sm text-slate-500">
             Select it in the dashboard to generate your QR kit.
           </p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        title="QR Code Preview"
+      >
+        <div className="flex flex-col items-center py-4 text-center">
+          <img 
+            src={qrDataUrl} 
+            alt="QR Poster" 
+            className="h-auto w-64 rounded-xl border border-slate-200 shadow-lg" 
+          />
+          <p className="mt-6 text-lg font-black text-slate-900">
+            {selectedBusinessInfo?.name || "Business"}
+          </p>
+          <p className="mb-6 mt-1 text-sm font-semibold text-slate-500">
+            Preview of your generated QR Poster.
+          </p>
+          <a
+            href={qrDataUrl || "#"}
+            download={`qr-${selectedBusiness || "business"}.png`}
+            className="inline-flex h-11 w-full max-w-xs items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
+            onClick={() => setShowQrModal(false)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Now
+          </a>
         </div>
       </Modal>
     </div>

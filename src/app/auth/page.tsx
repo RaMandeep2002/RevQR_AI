@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Input } from "@/components/ui";
+import PasswordInput, { validatePassword, ValidationResult } from "./paswordVaildation";
 // import { Chrome } from "lucide-react";
 // import Image from "next/image";
 
@@ -17,12 +18,20 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
+
+    // Validate password only for registration
+    if (mode === "register" && (!validation || !validation.isValid)) {
+      setError("Please enter a valid password (minimum 8 characters with uppercase and lowercase letters)");
+      setLoading(false);
+      return;
+    }
 
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({
@@ -41,25 +50,31 @@ export default function AuthPage() {
       if (data?.user?.identities?.length === 0) {
         setError("This email is already registered. Please sign in instead.");
       } else {
-        setSuccess("Please check your email to confirm your registration!");
+        setSuccess("Successfully registered! Redirecting to dashboard...");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
       }
     }
   };
 
-  // const handleGoogleAuth = async () => {
-  //   setLoading(true);
-  //   setError("");
-  //   setSuccess("");
-  //   const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-  //   const { error } = await supabase.auth.signInWithOAuth({
-  //     provider: "google",
-  //     options: {
-  //       redirectTo: `${appUrl}/dashboard`
-  //     }
-  //   });
-  //   setLoading(false);
-  //   if (error) setError(error.message);
-  // };
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    // Only validate during registration mode
+    if (mode === "register") {
+      setValidation(validatePassword(newPassword));
+    }
+  };
+
+  // Reset validation when switching modes
+  const handleModeSwitch = (newMode: "login" | "register") => {
+    setMode(newMode);
+    setError("");
+    setSuccess("");
+    setPassword("");
+    setValidation(null);
+  };
 
   return (
     <main className="flex min-h-screen bg-white">
@@ -92,19 +107,11 @@ export default function AuthPage() {
         <div className="mx-auto w-full max-w-md">
           {/* Logo / Branding */}
           <div className="mb-12 flex items-center gap-2 lg:justify-start justify-center">
-            {/* <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/30">
-              <span className="text-xl font-black">Q</span>
-            </div>
-            <span className="text-2xl font-black tracking-tighter text-slate-900">
-              QReview
-            </span> */}
             <img
               src="/Qreview-logo.png"
               alt="QReview Logo"
               className="h-auto w-64"
             />
-
-
           </div>
 
           <div className="text-center lg:text-left">
@@ -137,6 +144,7 @@ export default function AuthPage() {
                   className="h-12 rounded-xl border-slate-200 bg-slate-50/50 px-4 transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
                 />
               </div>
+              
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label
@@ -147,23 +155,44 @@ export default function AuthPage() {
                   </label>
                   {mode === "login" && (
                     <Link
-                      // @ts-ignore Next.js route type checking is too strict
-                      href="/auth/forgot-password"
+                      href={`/auth/forgot-password`}
                       className="text-xs font-bold text-brand-600 hover:text-brand-700"
                     >
                       Forgot?
                     </Link>
                   )}
                 </div>
-                <Input
+                
+                {/* PasswordInput - show validation only during registration */}
+                <PasswordInput
                   id="password"
-                  type="password"
-                  placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   required
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50/50 px-4 transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
+                  placeholder="••••••••"
+                  showValidation={mode === "register"} // Pass prop to control validation visibility
                 />
+                
+                {/* Show password requirements only during registration mode */}
+                {mode === "register" && password && !validation?.isValid && (
+                  <div className="mt-2 text-xs text-amber-600 animate-in fade-in slide-in-from-top-1">
+                    <p className="font-semibold mb-1">Password must contain:</p>
+                    <ul className="space-y-0.5">
+                      <li className={`flex items-center gap-1.5 ${validation?.isValidLength ? 'text-green-600 line-through' : ''}`}>
+                        <span>{validation?.isValidLength ? '✓' : '○'}</span>
+                        At least 8 characters
+                      </li>
+                      <li className={`flex items-center gap-1.5 ${validation?.hasUpperCase ? 'text-green-600 line-through' : ''}`}>
+                        <span>{validation?.hasUpperCase ? '✓' : '○'}</span>
+                        Uppercase letter (A-Z)
+                      </li>
+                      <li className={`flex items-center gap-1.5 ${validation?.hasLowerCase ? 'text-green-600 line-through' : ''}`}>
+                        <span>{validation?.hasLowerCase ? '✓' : '○'}</span>
+                        Lowercase letter (a-z)
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -198,21 +227,13 @@ export default function AuthPage() {
             )}
 
             <div className="mt-8 grid gap-4">
-              {/* <Button
-                type="button"
-                onClick={handleGoogleAuth}
-                loading={loading}
-                className="h-12 w-full rounded-xl border border-slate-200  text-sm font-bold text-black"
-              >
-                <Chrome className="mr-2 h-4 w-4" />
-                Continue with Google
-              </Button> */}
               <Button
                 type="submit"
                 loading={loading}
-                className="h-14 w-full text-base font-bold bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-xl shadow-slate-900/10"
+                disabled={mode === "register" && password.length > 0 && !validation?.isValid}
+                className="h-14 w-full text-base font-bold bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-xl shadow-slate-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {mode === "login" ? "Sign In to Account" : "Register Business"}
+                {mode === "login" ? "Sign In to Account" : "Register Your Account"}
               </Button>
             </div>
 
@@ -220,11 +241,10 @@ export default function AuthPage() {
               {mode === "login" ? (
                 <>
                   Don&apos;t have an account?{" "}
-
                   <button
                     type="button"
-                    onClick={() => setMode("register")}
-                    className="font-bold text-brand-600 hover:text-brand-700"
+                    onClick={() => handleModeSwitch("register")}
+                    className="font-bold text-brand-600 hover:text-brand-700 transition-colors"
                   >
                     Register now
                   </button>
@@ -234,8 +254,8 @@ export default function AuthPage() {
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => setMode("login")}
-                    className="font-bold text-brand-600 hover:text-brand-700"
+                    onClick={() => handleModeSwitch("login")}
+                    className="font-bold text-brand-600 hover:text-brand-700 transition-colors"
                   >
                     Sign in instead
                   </button>

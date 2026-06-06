@@ -39,9 +39,9 @@ export function DashboardHeader({ onOpenSidebar }: { onOpenSidebar: () => void }
         <button onClick={onOpenSidebar} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Open sidebar">
           <Menu className="h-5 w-5" />
         </button>
-        <div className="relative hidden w-full max-w-md md:block">
+        {/* <div className="relative hidden w-full max-w-md md:block">
           <img src="/Qreview-logo.png" alt="QReview Logo" className="h-auto w-24" />
-        </div>
+        </div> */}
       </div>
       <div className="flex items-center gap-4">
         <div className="relative">

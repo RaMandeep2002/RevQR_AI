@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-const LANGUAGES = ["English", "Hindi", "Hinglish"];
+const LANGUAGES = ["English", "Hindi", "Hinglish", "Punglish"];
 const TONES = ["Professional", "Friendly", "Enthusiastic"];
 
 export async function GET() {

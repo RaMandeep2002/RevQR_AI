@@ -104,3 +104,103 @@ export const generateProfessionalQrImage = async (
     qrImg.src = qrDataUrl;
   });
 };
+
+export const applyLogoToQr = async ({
+  qrDataUrl,
+  logoDataUrl,
+  logoSizePercent = 22,
+  logoShape = "rounded"
+}: {
+  qrDataUrl: string;
+  logoDataUrl?: string | null;
+  logoSizePercent?: number;
+  logoShape?: "square" | "rounded" | "circle";
+}): Promise<string> => {
+  if (!logoDataUrl) return qrDataUrl;
+
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const qrImg = new Image();
+    const logoImg = new Image();
+
+    qrImg.crossOrigin = "anonymous";
+    logoImg.crossOrigin = "anonymous";
+
+    qrImg.onload = () => {
+      canvas.width = qrImg.width;
+      canvas.height = qrImg.height;
+      if (!ctx) return resolve(qrDataUrl);
+      ctx.drawImage(qrImg, 0, 0);
+
+      logoImg.onload = () => {
+        const size = Math.max(40, Math.floor((Math.min(canvas.width, canvas.height) * logoSizePercent) / 100));
+        const x = (canvas.width - size) / 2;
+        const y = (canvas.height - size) / 2;
+
+        // White background patch behind logo for scan reliability.
+        const padding = 10;
+        const bgX = x - padding;
+        const bgY = y - padding;
+        const bgSize = size + padding * 2;
+
+        ctx.save();
+        if (logoShape === "circle") {
+          ctx.beginPath();
+          ctx.arc(bgX + bgSize / 2, bgY + bgSize / 2, bgSize / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+        } else {
+          const radius = logoShape === "rounded" ? 18 : 0;
+          ctx.beginPath();
+          ctx.moveTo(bgX + radius, bgY);
+          ctx.lineTo(bgX + bgSize - radius, bgY);
+          ctx.quadraticCurveTo(bgX + bgSize, bgY, bgX + bgSize, bgY + radius);
+          ctx.lineTo(bgX + bgSize, bgY + bgSize - radius);
+          ctx.quadraticCurveTo(bgX + bgSize, bgY + bgSize, bgX + bgSize - radius, bgY + bgSize);
+          ctx.lineTo(bgX + radius, bgY + bgSize);
+          ctx.quadraticCurveTo(bgX, bgY + bgSize, bgX, bgY + bgSize - radius);
+          ctx.lineTo(bgX, bgY + radius);
+          ctx.quadraticCurveTo(bgX, bgY, bgX + radius, bgY);
+          ctx.closePath();
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.save();
+        if (logoShape === "circle") {
+          ctx.beginPath();
+          ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+        } else if (logoShape === "rounded") {
+          const r = 14;
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + size - r, y);
+          ctx.quadraticCurveTo(x + size, y, x + size, y + r);
+          ctx.lineTo(x + size, y + size - r);
+          ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size);
+          ctx.lineTo(x + r, y + size);
+          ctx.quadraticCurveTo(x, y + size, x, y + size - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+          ctx.clip();
+        }
+
+        ctx.drawImage(logoImg, x, y, size, size);
+        ctx.restore();
+        resolve(canvas.toDataURL("image/png"));
+      };
+
+      logoImg.onerror = () => resolve(qrDataUrl);
+      logoImg.src = logoDataUrl;
+    };
+
+    qrImg.onerror = () => resolve(qrDataUrl);
+    qrImg.src = qrDataUrl;
+  });
+};

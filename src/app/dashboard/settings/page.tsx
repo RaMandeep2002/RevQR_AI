@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 
-const LANGUAGES = ["English", "Hindi", "Hinglish"] as const;
+const LANGUAGES = ["English", "Hindi", "Hinglish", "Punglish"] as const;
 const TONES = ["Professional", "Friendly", "Enthusiastic"] as const;
 
 export default function DashboardSettingsPage() {
