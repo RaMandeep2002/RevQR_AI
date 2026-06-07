@@ -20,6 +20,7 @@ import { Modal } from "@/components/modal";
 import { Input } from "@/components/ui/input";
 import { applyLogoToQr, generateProfessionalQrImage } from "@/lib/utils";
 import { Business, Review } from "@/types";
+import Link from "next/link";
 
 type ReviewStat = {
   business_id: string;
@@ -40,7 +41,7 @@ export default function DashboardOverviewPage() {
     salt_value: "v1",
     logo_data_url: "",
     logo_size_percent: 22,
-    logo_shape: "rounded"
+    logo_shape: "rounded",
   });
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -65,9 +66,19 @@ export default function DashboardOverviewPage() {
       reviewRes.json(),
       statRes.json(),
     ]);
-    setBusinesses(businessJson.data || []);
+    const nextBusinesses = businessJson.data || [];
+    setBusinesses(nextBusinesses);
     setReviews(reviewJson.data || []);
     setStats(statJson.data || []);
+
+    const params = new URLSearchParams(window.location.search);
+    const requestedBusinessId = params.get("businessId");
+    if (!selectedBusiness && nextBusinesses.length) {
+      const requestedBusiness = nextBusinesses.find(
+        (business: Business) => business.id === requestedBusinessId,
+      );
+      setSelectedBusiness(requestedBusiness?.id || nextBusinesses[0].id);
+    }
   };
 
   useEffect(() => {
@@ -77,7 +88,9 @@ export default function DashboardOverviewPage() {
   useEffect(() => {
     const fetchCustomization = async () => {
       if (!selectedBusiness) return;
-      const response = await fetch(`/api/qr-customizations?businessId=${selectedBusiness}`);
+      const response = await fetch(
+        `/api/qr-customizations?businessId=${selectedBusiness}`,
+      );
       const json = await response.json();
       if (!response.ok) return;
       setQrConfig({
@@ -86,7 +99,7 @@ export default function DashboardOverviewPage() {
         salt_value: json.data.salt_value || "v1",
         logo_data_url: json.data.logo_data_url || "",
         logo_size_percent: Number(json.data.logo_size_percent || 22),
-        logo_shape: json.data.logo_shape || "rounded"
+        logo_shape: json.data.logo_shape || "rounded",
       });
     };
     fetchCustomization();
@@ -104,14 +117,15 @@ export default function DashboardOverviewPage() {
         margin: 1,
         color: {
           dark: qrConfig.dark_color || "#111827",
-          light: qrConfig.light_color || "#ffffff"
-        }
+          light: qrConfig.light_color || "#ffffff",
+        },
       });
       const qrWithLogo = await applyLogoToQr({
         qrDataUrl: rawQrDataUrl,
         logoDataUrl: qrConfig.logo_data_url || "",
         logoSizePercent: Number(qrConfig.logo_size_percent || 22),
-        logoShape: (qrConfig.logo_shape as "square" | "rounded" | "circle") || "rounded"
+        logoShape:
+          (qrConfig.logo_shape as "square" | "rounded" | "circle") || "rounded",
       });
       const posterDataUrl = await generateProfessionalQrImage(
         qrWithLogo,
@@ -129,7 +143,9 @@ export default function DashboardOverviewPage() {
   }, [reviews, selectedBusiness]);
 
   const selectedStat = stats.find((s) => s.business_id === selectedBusiness);
-  const selectedBusinessInfo = businesses.find((b) => b.id === selectedBusiness);
+  const selectedBusinessInfo = businesses.find(
+    (b) => b.id === selectedBusiness,
+  );
   // const selectedBusinessIndex = businesses.findIndex((b) => b.id === selectedBusiness);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -319,8 +335,18 @@ export default function DashboardOverviewPage() {
                 <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-slate-200 text-slate-400">
                   <QrCode className="h-8 w-8" />
                   <p className="text-sm font-bold uppercase tracking-widest">
-                    Select a business to generate QR
+                    {businesses.length
+                      ? "Select a business to generate QR"
+                      : "Create your first business setup"}
                   </p>
+                  {!businesses.length && (
+                    <Link
+                      href="/onboarding"
+                      className="mt-1 inline-flex h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"
+                    >
+                      Start onboarding
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -375,7 +401,6 @@ export default function DashboardOverviewPage() {
 
                     <p className="mt-4 rounded-r-xl border-l-4 border-brand-100 bg-slate-50 px-4 py-3 text-sm italic leading-relaxed text-slate-700">
                       &quot;{review.review_text}&quot;
-
                     </p>
                   </Card>
                 ))
@@ -391,8 +416,8 @@ export default function DashboardOverviewPage() {
         </div>
 
         <div className="space-y-8">
-          <Card className="rounded-md bg-slate-900 p-8 text-white shadow-2xl shadow-slate-900/20">
-            <h2 className="mb-1 text-xl text-black">New Business</h2>
+          <Card className="rounded-lg shadow-2xl shadow-slate-900/20">
+            <h2 className="mb-1 text-xl font-black text-black">New Business</h2>
             <p className="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">
               Expand your portfolio
             </p>
@@ -402,7 +427,7 @@ export default function DashboardOverviewPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="h-12 rounded-xl border-white/10 text-black placeholder:text-slate-500"
+                className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
               />
               <Input
                 placeholder="Email"
@@ -410,14 +435,14 @@ export default function DashboardOverviewPage() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
-                className="h-12 rounded-xl border-white/10 text-black placeholder:text-slate-500"
+                className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
               />
               <Input
                 placeholder="Category"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 required
-                className="h-12 rounded-xl border-white/10 text-black placeholder:text-slate-500"
+                  className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
               />
               <Input
                 placeholder="Google Business ID URL"
@@ -427,14 +452,14 @@ export default function DashboardOverviewPage() {
                   setForm({ ...form, googleBusinessUrl: e.target.value })
                 }
                 required
-                className="h-12 rounded-xl border-white/10 text-black placeholder:text-slate-500"
+                  className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
               />
               <Input
                 placeholder="Location"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                 required
-                className="h-12 rounded-xl border-white/10 text-black placeholder:text-slate-500"
+                 className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
               />
               {error && (
                 <p className="text-[10px] font-bold uppercase tracking-wider text-red-400">
@@ -444,7 +469,7 @@ export default function DashboardOverviewPage() {
               <Button
                 type="submit"
                 loading={loading}
-                className="h-12 w-full rounded-xl bg-brand-500 text-sm font-black hover:bg-brand-600"
+                className="h-12 w-full rounded-lg bg-brand-500 text-sm font-black hover:bg-brand-600"
               >
                 <Plus className="mr-2 h-4 w-4" /> Create Business
               </Button>
@@ -476,7 +501,7 @@ export default function DashboardOverviewPage() {
             Business created successfully.
           </p>
           <p className="mt-1 text-sm text-slate-500">
-            Select it in the dashboard to generate your QR kit.
+            Your QR kit is ready in the dashboard.
           </p>
         </div>
       </Modal>
@@ -487,10 +512,10 @@ export default function DashboardOverviewPage() {
         title="QR Code Preview"
       >
         <div className="flex flex-col items-center py-4 text-center">
-          <img 
-            src={qrDataUrl} 
-            alt="QR Poster" 
-            className="h-auto w-64 rounded-xl border border-slate-200 shadow-lg" 
+          <img
+            src={qrDataUrl}
+            alt="QR Poster"
+            className="h-auto w-64 rounded-xl border border-slate-200 shadow-lg"
           />
           <p className="mt-6 text-lg font-black text-slate-900">
             {selectedBusinessInfo?.name || "Business"}

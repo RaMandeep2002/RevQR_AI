@@ -40,7 +40,7 @@ export default function AuthPage() {
       });
       setLoading(false);
       if (error) return setError(error.message);
-      router.push("/dashboard");
+      router.push("/onboarding");
       router.refresh();
     } else {
       const { error, data } = await supabase.auth.signUp({ email, password });
@@ -50,9 +50,9 @@ export default function AuthPage() {
       if (data?.user?.identities?.length === 0) {
         setError("This email is already registered. Please sign in instead.");
       } else {
-        setSuccess("Successfully registered! Redirecting to dashboard...");
+        setSuccess("Successfully registered! Redirecting to setup...");
         setTimeout(() => {
-          router.push("/dashboard");
+          router.push("/onboarding");
         }, 1500);
       }
     }
