@@ -204,3 +204,5 @@ export const applyLogoToQr = async ({
     qrImg.src = qrDataUrl;
   });
 };
+
+
