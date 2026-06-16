@@ -127,7 +127,7 @@ export default function OnboardingPage() {
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
         <div className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.25em] text-emerald-200">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Checking your workspace
+          Loading ...
         </div>
       </main>
     );
