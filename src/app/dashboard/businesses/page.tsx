@@ -9,7 +9,13 @@ import { Business } from "@/types";
 export default function DashboardBusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [editingBusinessId, setEditingBusinessId] = useState("");
-  const [editForm, setEditForm] = useState({ name: "", email: "", category: "", googleBusinessUrl: "", location: "" });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    category: "",
+    googleBusinessUrl: "",
+    location: "",
+  });
   const [error, setError] = useState("");
 
   const fetchBusinesses = async () => {
@@ -29,7 +35,7 @@ export default function DashboardBusinessesPage() {
       email: business.email,
       category: business.category,
       googleBusinessUrl: business.google_business_url,
-      location: business.location
+      location: business.location,
     });
   };
 
@@ -38,10 +44,11 @@ export default function DashboardBusinessesPage() {
     const response = await fetch("/api/businesses", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: editingBusinessId, ...editForm })
+      body: JSON.stringify({ id: editingBusinessId, ...editForm }),
     });
     const json = await response.json();
-    if (!response.ok) return setError(json.error || "Failed to update business");
+    if (!response.ok)
+      return setError(json.error || "Failed to update business");
     setEditingBusinessId("");
     await fetchBusinesses();
   };
@@ -49,36 +56,101 @@ export default function DashboardBusinessesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       <div>
-        <h1 className="text-3xl font-black text-slate-900">All Businesses</h1>
-        <p className="mt-1 font-medium text-slate-500">Manage and update all registered businesses.</p>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white">
+          All Business
+        </h1>
+        <p className="mt-1 font-medium text-slate-500 dark:text-slate-300">
+          Manage and update all registered businesses.
+        </p>
       </div>
       <div className="grid gap-4">
         {businesses.map((business) => (
-          <Card key={business.id} className="p-6">
+          <Card key={business.id} className="p-6 bg-white dark:bg-slate-800/50">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-black text-slate-900">{business.name}</h3>
-                <p className="text-sm text-slate-500">{business.email}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-400">{business.category} • {business.location}</p>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  {business.name}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {business.email}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  {business.category} • {business.location}
+                </p>
               </div>
-              <Button className="border border-slate-200 text-slate-900" onClick={() => startEdit(business)}>
+              <Button
+                className="border border-slate-200 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                onClick={() => startEdit(business)}
+              >
                 <Edit3 className="mr-1 h-4 w-4" /> Update
               </Button>
             </div>
             {editingBusinessId === business.id ? (
               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Business Name" />
-                <Input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="Business Email" type="email" />
-                <Input value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} placeholder="Category" />
-                <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} placeholder="Location" />
-                <Input className="md:col-span-2" value={editForm.googleBusinessUrl} onChange={(e) => setEditForm({ ...editForm, googleBusinessUrl: e.target.value })} placeholder="Google Business URL" type="url" />
+                <Input
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  placeholder="Business Name"
+                  className="dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                />
+                <Input
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                  placeholder="Business Email"
+                  type="email"
+                  className="dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                />
+                <Input
+                  value={editForm.category}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, category: e.target.value })
+                  }
+                  placeholder="Category"
+                  className="dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                />
+                <Input
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, location: e.target.value })
+                  }
+                  placeholder="Location"
+                  className="dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                />
+                <Input
+                  className="md:col-span-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                  value={editForm.googleBusinessUrl}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      googleBusinessUrl: e.target.value,
+                    })
+                  }
+                  placeholder="Google Business URL"
+                  type="url"
+                />
                 <div className="md:col-span-2 flex gap-2">
-                  <Button onClick={saveBusinessUpdate}>Save Update</Button>
-                  <Button className="bg-slate-100 text-slate-900 hover:bg-slate-200" onClick={() => setEditingBusinessId("")}>
+                  <Button
+                    onClick={saveBusinessUpdate}
+                    className="dark:bg-blue-600 dark:hover:bg-blue-700"
+                  >
+                    Save Update
+                  </Button>
+                  <Button
+                    className="bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600"
+                    onClick={() => setEditingBusinessId("")}
+                  >
                     Cancel
                   </Button>
                 </div>
-                {error ? <p className="text-sm text-red-600 md:col-span-2">{error}</p> : null}
+                {error ? (
+                  <p className="text-sm text-red-600 md:col-span-2 dark:text-red-400">
+                    {error}
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </Card>

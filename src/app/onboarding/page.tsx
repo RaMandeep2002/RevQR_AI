@@ -195,7 +195,7 @@ export default function OnboardingPage() {
                     value={form.name}
                     onChange={(event) => updateForm("name", event.target.value)}
                     placeholder="QReview Coffee House"
-                    required
+                     
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -208,7 +208,7 @@ export default function OnboardingPage() {
                       value={form.email}
                       onChange={(event) => updateForm("email", event.target.value)}
                       placeholder="hello@company.com"
-                      required
+                       
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
                       value={form.category}
                       onChange={(event) => updateForm("category", event.target.value)}
                       placeholder="Restaurant, Salon, Clinic"
-                      required
+                       
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                     value={form.googleBusinessUrl}
                     onChange={(event) => updateForm("googleBusinessUrl", event.target.value)}
                     placeholder="https://g.page/r/your-business/review"
-                    required
+                     
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                     value={form.location}
                     onChange={(event) => updateForm("location", event.target.value)}
                     placeholder="New Delhi, India"
-                    required
+                     
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -296,24 +296,24 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/60">
+              <div className="rounded-lg border border-slate-200 p-6 bg-white text-black shadow-xl shadow-slate-300/60">
                 {qrDataUrl ? (
                   <div className="text-center">
                     <img src={qrDataUrl} alt="Generated QR poster" className="mx-auto w-48 rounded-lg border border-white/10 shadow-2xl" />
-                    <p className="mt-4 text-sm font-black text-emerald-200">QR poster is ready</p>
+                    <p className="mt-4 text-sm font-black text-emerald-200">QR is ready</p>
                     <p className="mt-1 text-xs font-semibold text-slate-300">Opening your dashboard now...</p>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/5">
+                    <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-black bg-white/5">
                       <QrCode className="h-16 w-16 text-slate-500" />
                     </div>
                     <div className="mt-5 space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
                         <Building2 className="h-4 w-4 text-emerald-300" />
                         {form.name || "Your business"}
                       </div>
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
                         <MapPin className="h-4 w-4 text-blue-300" />
                         {form.location || "Business location"}
                       </div>

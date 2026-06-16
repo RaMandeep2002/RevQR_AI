@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
   Building2,
@@ -21,6 +21,14 @@ import { Input } from "@/components/ui/input";
 import { applyLogoToQr, generateProfessionalQrImage } from "@/lib/utils";
 import { Business, Review } from "@/types";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ReviewStat = {
   business_id: string;
@@ -43,17 +51,10 @@ export default function DashboardOverviewPage() {
     logo_size_percent: 22,
     logo_shape: "rounded",
   });
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    category: "",
-    googleBusinessUrl: "",
-    location: "",
-  });
-  const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  // const [aiInsight, setAiInsight] = useState("");
+  // const [insightLoading, setInsightLoading] = useState(false);
 
   const fetchData = async () => {
     const [businessRes, reviewRes, statRes] = await Promise.all([
@@ -137,6 +138,55 @@ export default function DashboardOverviewPage() {
     generate();
   }, [selectedBusiness, businesses, qrConfig]);
 
+//  const lastBusinessRef = useRef<string | null>(null);
+
+// useEffect(() => {
+//   const fetchInsight = async () => {
+//     if (!selectedBusiness) {
+//       setAiInsight("");
+//       return;
+//     }
+
+//     // Prevent duplicate call
+//     if (lastBusinessRef.current === selectedBusiness) return;
+
+//     lastBusinessRef.current = selectedBusiness;
+
+//     const business = businesses.find((b) => b.id === selectedBusiness);
+//     if (!business) return;
+
+//     setInsightLoading(true);
+
+//     try {
+//       const response = await fetch("/api/ai/genrating-insight", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           businessName: business.name,
+//           category: business.category,
+//         }),
+//       });
+
+//       const data = await response.json();
+
+//       setAiInsight(
+//         data.rawText?.length > 0
+//           ? data.rawText.insight
+//           : "No insight available for this business."
+//       );
+//     } catch (err) {
+//       console.error("Error fetching AI insight", err);
+//       setAiInsight("Unable to generate insight at this time.");
+//     } finally {
+//       setInsightLoading(false);
+//     }
+//   };
+
+//   fetchInsight();
+// }, [selectedBusiness, businesses]);
+
   const filteredReviews = useMemo(() => {
     if (!selectedBusiness) return reviews;
     return reviews.filter((r) => r.business_id === selectedBusiness);
@@ -146,32 +196,33 @@ export default function DashboardOverviewPage() {
   const selectedBusinessInfo = businesses.find(
     (b) => b.id === selectedBusiness,
   );
+
   // const selectedBusinessIndex = businesses.findIndex((b) => b.id === selectedBusiness);
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const response = await fetch("/api/businesses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const json = await response.json();
-    setLoading(false);
-    if (!response.ok)
-      return setError(json.error || "Failed to register business");
-    setSelectedBusiness(json.data.id);
-    setForm({
-      name: "",
-      email: "",
-      category: "",
-      googleBusinessUrl: "",
-      location: "",
-    });
-    setShowSuccessModal(true);
-    await fetchData();
-  };
+  // const handleRegister = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError("");
+  //   const response = await fetch("/api/businesses", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(form),
+  //   });
+  //   const json = await response.json();
+  //   setLoading(false);
+  //   if (!response.ok)
+  //     return setError(json.error || "Failed to register business");
+  //   setSelectedBusiness(json.data.id);
+  //   setForm({
+  //     name: "",
+  //     email: "",
+  //     category: "",
+  //     googleBusinessUrl: "",
+  //     location: "",
+  //   });
+  //   setShowSuccessModal(true);
+  //   await fetchData();
+  // };
 
   // const goToPreviousBusiness = () => {
   //   if (!businesses.length) return;
@@ -191,19 +242,35 @@ export default function DashboardOverviewPage() {
   //   setSelectedBusiness(businesses[selectedBusinessIndex + 1].id);
   // };
 
+  // const genrateInsights = async () =>{
+  //   setError("");
+  //   setSuccess("");
+  //   setLoading(true);
+
+  //   const response = await fetch("/api/ai/genrating-insight", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       businessName,
+  //       category: businessCategory,
+  //       businessId
+  //     }),
+  //   });
+  // }
+
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto w-full  space-y-8 px-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">
             Dashboard Overview
           </h1>
-          <p className="mt-1 font-medium text-slate-500">
+          <p className="mt-1 font-medium text-slate-500 dark:text-slate-300">
             Welcome back, manager. Here&apos;s what&apos;s happening today.
           </p>
         </div>
         <Button
-          className="border border-slate-200 text-slate-900 shadow-sm"
+          className="border border-slate-200 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-[#CB3CFF] dark:text-white dark:hover:bg-[#CB3CFF]/80"
           onClick={fetchData}
         >
           <RefreshCw className="mr-2 h-4 w-4" /> Refresh Data
@@ -213,7 +280,7 @@ export default function DashboardOverviewPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[
           {
-            label: "Total Businesses",
+            label: "Total Business",
             value: businesses.length,
             icon: Building2,
             color: "bg-blue-500",
@@ -233,7 +300,7 @@ export default function DashboardOverviewPage() {
         ].map((stat, i) => (
           <Card
             key={i}
-            className="flex items-center gap-5 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            className="flex items-center gap-5 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl bg-white dark:bg-[#0B1739] border border-[#343B4F]/80"
           >
             <div
               className={`h-12 w-12 rounded-2xl ${stat.color} flex items-center justify-center text-white shadow-lg shadow-current/20`}
@@ -241,10 +308,10 @@ export default function DashboardOverviewPage() {
               <stat.icon className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-[#AEB9E1]">
                 {stat.label}
               </p>
-              <p className="mt-0.5 text-2xl font-black text-slate-900">
+              <p className="mt-0.5 text-2xl font-black text-slate-900 dark:text-white">
                 {stat.value}
               </p>
             </div>
@@ -253,26 +320,19 @@ export default function DashboardOverviewPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-8 lg:col-span-2">
-          <Card className="relative overflow-hidden p-8">
-            <div className="absolute right-0 top-0 -z-0 p-8 text-brand-100 opacity-10">
+        <div className="space-y-8 lg:col-span-3">
+          <Card className="relative overflow-hidden p-8 dark:bg-[#0B1739] border-[#343B4F]/80">
+            <div className="absolute right-0 top-0 -z-0 p-8 text-brand-100 opacity-10 dark:text-brand-900">
               <QrCode size={200} />
             </div>
             <div className="relative z-10">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-black text-slate-900">
+                <h2 className="text-xl font-black text-slate-900 dark:text-white">
                   QR Marketing Toolkit
                 </h2>
                 <div className="flex items-center gap-2">
-                  {/* <button
-                    onClick={goToPreviousBusiness}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    aria-label="Previous business"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button> */}
-                  <select
-                    className="rounded-xl border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-brand-500/20"
+                  {/* <select
+                    className="rounded-xl border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     value={selectedBusiness}
                     onChange={(e) => setSelectedBusiness(e.target.value)}
                   >
@@ -282,19 +342,28 @@ export default function DashboardOverviewPage() {
                         {b.name}
                       </option>
                     ))}
-                  </select>
-                  {/* <button
-                    onClick={goToNextBusiness}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    aria-label="Next business"
+                  </select> */}
+
+                  <Select
+                    value={selectedBusiness}
+                    onValueChange={setSelectedBusiness}
                   >
-                    <ChevronRight className="h-4 w-4" />
-                  </button> */}
+                    <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                      <SelectValue placeholder="Select Business" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {businesses.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               {qrDataUrl ? (
                 <div className="flex flex-col items-center gap-8 md:flex-row">
-                  <div className="group relative overflow-hidden rounded-[2rem] border-8 border-white shadow-2xl shadow-slate-200">
+                  <div className="group relative overflow-hidden rounded-[2rem] border-8 border-white shadow-2xl shadow-slate-200 dark:border-slate-700 dark:shadow-slate-800">
                     <img
                       src={qrDataUrl}
                       alt="QR Poster"
@@ -303,28 +372,28 @@ export default function DashboardOverviewPage() {
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 opacity-0 transition-opacity group-hover:opacity-100">
                       <button
                         onClick={() => setShowQrModal(true)}
-                        className="rounded-full bg-white p-3 text-slate-900 shadow-xl transition-transform hover:scale-110"
+                        className="rounded-full bg-white p-3 text-slate-900 shadow-xl transition-transform hover:scale-110 dark:bg-slate-800 dark:text-white"
                       >
                         <Maximize className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
                   <div className="w-full space-y-4 md:max-w-sm">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-200">
                         Selected Business
                       </p>
-                      <p className="mt-1 text-lg font-black text-slate-900">
+                      <p className="mt-1 text-lg font-black text-slate-900 dark:text-white">
                         {selectedBusinessInfo?.name || "Business"}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">
+                      <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         {selectedBusinessInfo?.location || "No location"}
                       </p>
                     </div>
                     <a
                       href={qrDataUrl || "#"}
                       download={`qr-${selectedBusiness || "business"}.png`}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-600 dark:bg-[#CB3CFF] px-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 dark:hover:bg-[#CB3CFF]/80"
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download QR Poster
@@ -332,7 +401,7 @@ export default function DashboardOverviewPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-slate-200 text-slate-400">
+                <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-slate-200 text-slate-400 dark:border-slate-700 dark:text-slate-500">
                   <QrCode className="h-8 w-8" />
                   <p className="text-sm font-bold uppercase tracking-widest">
                     {businesses.length
@@ -342,7 +411,7 @@ export default function DashboardOverviewPage() {
                   {!businesses.length && (
                     <Link
                       href="/onboarding"
-                      className="mt-1 inline-flex h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"
+                      className="mt-1 inline-flex h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600"
                     >
                       Start onboarding
                     </Link>
@@ -354,10 +423,10 @@ export default function DashboardOverviewPage() {
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-900">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">
                 Recent Feedback
               </h2>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 {filteredReviews.length} reviews
               </span>
             </div>
@@ -366,26 +435,26 @@ export default function DashboardOverviewPage() {
                 filteredReviews.slice(0, 5).map((review) => (
                   <Card
                     key={review.id}
-                    className="rounded-2xl border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                    className="rounded-2xl  bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-[#0B1739] border border-[#343B4F]/80"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-sm font-black uppercase text-brand-700">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-sm font-black uppercase text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
                           {(review.customer_name || "A").charAt(0)}
                         </div>
                         <div>
-                          <p className="font-black text-slate-900">
+                          <p className="font-black text-slate-900 dark:text-white">
                             {review.customer_name || "Anonymous Customer"}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             {review.customer_email || "No email"}
                           </p>
-                          <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                          <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                             {review.businesses?.name || "Business"}
                           </p>
                         </div>
                       </div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         {new Date(review.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -394,19 +463,19 @@ export default function DashboardOverviewPage() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-4 w-4 ${i < review.stars ? "fill-current" : "text-slate-200"}`}
+                          className={`h-4 w-4 ${i < review.stars ? "fill-current" : "text-slate-200 dark:text-slate-700"}`}
                         />
                       ))}
                     </div>
 
-                    <p className="mt-4 rounded-r-xl border-l-4 border-brand-100 bg-slate-50 px-4 py-3 text-sm italic leading-relaxed text-slate-700">
+                    <p className="mt-4 rounded-r-xl border-l-4 border-brand-100 bg-slate-50 px-4 py-3 text-sm italic leading-relaxed text-slate-700 dark:border-brand-800 dark:bg-slate-800/30 dark:text-slate-300">
                       &quot;{review.review_text}&quot;
                     </p>
                   </Card>
                 ))
               ) : (
-                <div className="rounded-3xl border border-slate-100 bg-white py-12 text-center shadow-sm">
-                  <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
+                <div className="rounded-3xl border border-slate-100 bg-white py-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
+                  <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                     No reviews found
                   </p>
                 </div>
@@ -415,80 +484,28 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
-        <div className="space-y-8">
-          <Card className="rounded-lg shadow-2xl shadow-slate-900/20">
-            <h2 className="mb-1 text-xl font-black text-black">New Business</h2>
-            <p className="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">
-              Expand your portfolio
-            </p>
-            <form className="space-y-4" onSubmit={handleRegister}>
-              <Input
-                placeholder="Name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
-              />
-              <Input
-                placeholder="Email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-                className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
-              />
-              <Input
-                placeholder="Category"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                required
-                  className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
-              />
-              <Input
-                placeholder="Google Business ID URL"
-                type="url"
-                value={form.googleBusinessUrl}
-                onChange={(e) =>
-                  setForm({ ...form, googleBusinessUrl: e.target.value })
-                }
-                required
-                  className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
-              />
-              <Input
-                placeholder="Location"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                required
-                 className="h-12 rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md px-4 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 focus:bg-white focus:shadow-lg hover:border-slate-300"
-              />
-              {error && (
-                <p className="text-[10px] font-bold uppercase tracking-wider text-red-400">
-                  {error}
-                </p>
-              )}
-              <Button
-                type="submit"
-                loading={loading}
-                className="h-12 w-full rounded-lg bg-brand-500 text-sm font-black hover:bg-brand-600"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Create Business
-              </Button>
-            </form>
-          </Card>
-          <Card className="border-brand-100 bg-brand-50/30 p-6">
-            <div className="mb-4 flex items-center gap-3 text-brand-700">
+        {/* <div className="space-y-8">
+          <Card className="bg-brand-50/30 dark:dark:bg-[#0B1739] border-[#343B4F]/80 p-6 dark:border-brand-800 dark:bg-brand-900/20">
+            <div className="mb-4 flex items-center gap-3 text-brand-700 dark:text-gray-300">
               <Sparkles className="h-5 w-5" />
               <h3 className="text-sm font-black uppercase tracking-wider">
                 AI Insight
               </h3>
             </div>
-            <p className="text-sm font-medium leading-relaxed text-brand-900">
-              Businesses with clear QR codes at checkout see a{" "}
-              <span className="font-black">340% increase</span> in review
-              volume.
-            </p>
+            <div className="text-sm font-medium leading-relaxed text-brand-900 dark:text-brand-100 min-h-[40px]">
+              {insightLoading ? (
+                <div className="flex items-center gap-2 text-brand-500/70">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Generating personalized insight...
+                </div>
+              ) : aiInsight ? (
+                <p>{aiInsight}</p>
+              ) : (
+                <p>Select a business to generate AI insights.</p>
+              )}
+            </div>
           </Card>
-        </div>
+        </div> */}
       </div>
 
       <Modal
@@ -497,10 +514,10 @@ export default function DashboardOverviewPage() {
         title="Success!"
       >
         <div className="py-4 text-center">
-          <p className="font-bold text-slate-900">
+          <p className="font-bold text-slate-900 dark:text-white">
             Business created successfully.
           </p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Your QR kit is ready in the dashboard.
           </p>
         </div>
@@ -515,18 +532,18 @@ export default function DashboardOverviewPage() {
           <img
             src={qrDataUrl}
             alt="QR Poster"
-            className="h-auto w-64 rounded-xl border border-slate-200 shadow-lg"
+            className="h-auto w-64 rounded-xl border border-slate-200 shadow-lg dark:border-slate-700"
           />
-          <p className="mt-6 text-lg font-black text-slate-900">
+          <p className="mt-6 text-lg font-black text-slate-900 dark:text-white">
             {selectedBusinessInfo?.name || "Business"}
           </p>
-          <p className="mb-6 mt-1 text-sm font-semibold text-slate-500">
+          <p className="mb-6 mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
             Preview of your generated QR Poster.
           </p>
           <a
             href={qrDataUrl || "#"}
             download={`qr-${selectedBusiness || "business"}.png`}
-            className="inline-flex h-11 w-full max-w-xs items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
+            className="inline-flex h-11 w-full max-w-xs items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
             onClick={() => setShowQrModal(false)}
           >
             <Download className="mr-2 h-4 w-4" />

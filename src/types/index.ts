@@ -19,3 +19,11 @@ export type Review = {
   created_at: string;
   businesses?: { name: string } | null;
 };
+
+export type PublicReview = {
+  id: string;
+  customer_name: string;
+  stars: number;
+  review_text: string;
+  created_at: string;
+};

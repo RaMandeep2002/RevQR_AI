@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Input } from "@/components/ui";
-import PasswordInput, { validatePassword, ValidationResult } from "./paswordVaildation";
+import PasswordInput, {
+  validatePassword,
+  ValidationResult,
+} from "./paswordVaildation";
+import { QrCode } from "lucide-react";
 // import { Chrome } from "lucide-react";
 // import Image from "next/image";
 
@@ -28,7 +32,9 @@ export default function AuthPage() {
 
     // Validate password only for registration
     if (mode === "register" && (!validation || !validation.isValid)) {
-      setError("Please enter a valid password (minimum 8 characters with uppercase and lowercase letters)");
+      setError(
+        "Please enter a valid password (minimum 8 characters with uppercase and lowercase letters)",
+      );
       setLoading(false);
       return;
     }
@@ -58,7 +64,9 @@ export default function AuthPage() {
     }
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handlePasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     const newPassword = e.target.value;
     setPassword(newPassword);
     // Only validate during registration mode
@@ -107,11 +115,19 @@ export default function AuthPage() {
         <div className="mx-auto w-full max-w-md">
           {/* Logo / Branding */}
           <div className="mb-12 flex items-center gap-2 lg:justify-start justify-center">
-            <img
+            {/* <img
               src="/Qreview-logo.png"
               alt="QReview Logo"
               className="h-auto w-64"
-            />
+            /> */}
+            <div className="flex items-center gap-3 text-zinc-100 group cursor-pointer">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 group-hover:border-emerald-500/30 transition-all duration-300">
+                <QrCode className="h-5 w-5" />
+              </div>
+              <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-500 group-hover:to-zinc-400 transition-colors">
+                QReview
+              </span>
+            </div>
           </div>
 
           <div className="text-center lg:text-left">
@@ -144,7 +160,7 @@ export default function AuthPage() {
                   className="h-12 rounded-xl border-slate-200 bg-slate-50/50 px-4 transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label
@@ -162,7 +178,7 @@ export default function AuthPage() {
                     </Link>
                   )}
                 </div>
-                
+
                 {/* PasswordInput - show validation only during registration */}
                 <PasswordInput
                   id="password"
@@ -172,22 +188,28 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   showValidation={mode === "register"} // Pass prop to control validation visibility
                 />
-                
+
                 {/* Show password requirements only during registration mode */}
                 {mode === "register" && password && !validation?.isValid && (
                   <div className="mt-2 text-xs text-amber-600 animate-in fade-in slide-in-from-top-1">
                     <p className="font-semibold mb-1">Password must contain:</p>
                     <ul className="space-y-0.5">
-                      <li className={`flex items-center gap-1.5 ${validation?.isValidLength ? 'text-green-600 line-through' : ''}`}>
-                        <span>{validation?.isValidLength ? '✓' : '○'}</span>
+                      <li
+                        className={`flex items-center gap-1.5 ${validation?.isValidLength ? "text-green-600 line-through" : ""}`}
+                      >
+                        <span>{validation?.isValidLength ? "✓" : "○"}</span>
                         At least 8 characters
                       </li>
-                      <li className={`flex items-center gap-1.5 ${validation?.hasUpperCase ? 'text-green-600 line-through' : ''}`}>
-                        <span>{validation?.hasUpperCase ? '✓' : '○'}</span>
+                      <li
+                        className={`flex items-center gap-1.5 ${validation?.hasUpperCase ? "text-green-600 line-through" : ""}`}
+                      >
+                        <span>{validation?.hasUpperCase ? "✓" : "○"}</span>
                         Uppercase letter (A-Z)
                       </li>
-                      <li className={`flex items-center gap-1.5 ${validation?.hasLowerCase ? 'text-green-600 line-through' : ''}`}>
-                        <span>{validation?.hasLowerCase ? '✓' : '○'}</span>
+                      <li
+                        className={`flex items-center gap-1.5 ${validation?.hasLowerCase ? "text-green-600 line-through" : ""}`}
+                      >
+                        <span>{validation?.hasLowerCase ? "✓" : "○"}</span>
                         Lowercase letter (a-z)
                       </li>
                     </ul>
@@ -230,10 +252,16 @@ export default function AuthPage() {
               <Button
                 type="submit"
                 loading={loading}
-                disabled={mode === "register" && password.length > 0 && !validation?.isValid}
+                disabled={
+                  mode === "register" &&
+                  password.length > 0 &&
+                  !validation?.isValid
+                }
                 className="h-14 w-full text-base font-bold bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-xl shadow-slate-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {mode === "login" ? "Sign In to Account" : "Register Your Account"}
+                {mode === "login"
+                  ? "Sign In to Account"
+                  : "Register Your Account"}
               </Button>
             </div>
 
