@@ -75,7 +75,7 @@ interface AnalyticsData {
   responseVolume: ResponseVolumeData[];
   ratingByForm: RatingByFormData[];
   reviewBreakdown: ReviewBreakdownData[];
-  allReviews: Review[]; // Added to store all reviews for CSV export
+  allReviews: Review[];
 }
 
 interface RatingData {
@@ -128,7 +128,6 @@ export default function AnalyticsPage() {
     setError(null);
 
     try {
-      // Fetch reviews and stats in parallel
       const [reviewsResponse, statsResponse] = await Promise.all([
         fetch("/api/reviews"),
         fetch("/api/reviews?stats=true"),
@@ -144,7 +143,6 @@ export default function AnalyticsPage() {
       const reviews: Review[] = reviewsData.data || [];
       const stats: ReviewStats[] = statsData.data || [];
 
-      // Process the data
       const processedData = processAnalyticsData(reviews, stats);
       setData(processedData);
     } catch (error) {
@@ -159,18 +157,12 @@ export default function AnalyticsPage() {
     reviews: Review[],
     stats: ReviewStats[],
   ): AnalyticsData => {
-    // Calculate total responses
     const totalResponses = reviews.length;
-
-    // Calculate average rating
     const totalStars = reviews.reduce((sum, review) => sum + review.stars, 0);
     const averageRating = totalResponses > 0 ? totalStars / totalResponses : 0;
-
-    // Calculate positive (4-5 stars) and negative (1-2 stars) reviews
     const positiveReviews = reviews.filter((r) => r.stars >= 4).length;
     const negativeReviews = reviews.filter((r) => r.stars <= 2).length;
 
-    // Group reviews by date for ratings over time
     const dateMap = new Map<string, { total: number; count: number }>();
     reviews.forEach((review) => {
       const date = new Date(review.created_at).toISOString().split("T")[0];
@@ -189,7 +181,6 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Calculate response volume per day
     const volumeMap = new Map<string, number>();
     reviews.forEach((review) => {
       const date = new Date(review.created_at).toISOString().split("T")[0];
@@ -200,7 +191,6 @@ export default function AnalyticsPage() {
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Prepare rating by form data
     const formMap = new Map<
       string,
       { name: string; total: number; count: number }
@@ -228,8 +218,6 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Review breakdown - for now, we'll use a placeholder
-    // This would typically come from structured survey questions
     const reviewBreakdown: ReviewBreakdownData[] = [];
 
     return {
@@ -251,13 +239,10 @@ export default function AnalyticsPage() {
       return;
     }
 
-    // Helper function to clean customer names
     const cleanCustomerName = (name: string) => {
       if (!name) return "Anonymous";
-      // Remove leading numbers and spaces
       let cleaned = name.replace(/^\d+\s*/, "").trim();
       if (!cleaned) return "Anonymous";
-      // Capitalize first letter of each word
       return cleaned
         .split(" ")
         .map(
@@ -266,7 +251,6 @@ export default function AnalyticsPage() {
         .join(" ");
     };
 
-    // Define CSV headers
     const headers = [
       "Date",
       "Customer Name",
@@ -276,21 +260,17 @@ export default function AnalyticsPage() {
       "Business",
     ];
 
-    // Map reviews to CSV rows with cleaned data
     const rows = data.allReviews.map((review) => {
-      // Clean and format data
       const date = new Date(review.created_at);
       const month = date.toLocaleDateString("en-US", { month: "short" });
       const day = date.getDate();
       const year = date.getFullYear();
       const formattedDate = `${month} ${day} ${year}`;
-      console.log(formattedDate);
 
       const customerName = cleanCustomerName(review.customer_name);
 
       let reviewText = review.review_text || "";
       reviewText = reviewText.replace(/\s+/g, " ").trim();
-      // Truncate very long reviews
       if (reviewText.length > 500) {
         reviewText = reviewText.substring(0, 497) + "...";
       }
@@ -305,13 +285,11 @@ export default function AnalyticsPage() {
       ];
     });
 
-    // Combine headers and rows
     const csvContent = [
       headers.join(","),
       ...rows.map((row) => row.join(",")),
     ].join("\n");
 
-    // Add BOM for UTF-8 encoding
     const blob = new Blob(["\uFEFF" + csvContent], {
       type: "text/csv;charset=utf-8;",
     });
@@ -336,7 +314,9 @@ export default function AnalyticsPage() {
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
         alert("Could not retrieve your email. Please try logging in again.");
@@ -344,7 +324,6 @@ export default function AnalyticsPage() {
         return;
       }
 
-      // Helper function to clean customer names
       const cleanCustomerName = (name: string) => {
         if (!name) return "Anonymous";
         let cleaned = name.replace(/^\d+\s*/, "").trim();
@@ -352,7 +331,8 @@ export default function AnalyticsPage() {
         return cleaned
           .split(" ")
           .map(
-            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+            (word) =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
           )
           .join(" ");
       };
@@ -396,7 +376,8 @@ export default function AnalyticsPage() {
         ...rows.map((row) => row.join(",")),
       ].join("\n");
 
-      const businessName = data.allReviews[0]?.businesses?.name || "QReview Business";
+      const businessName =
+        data.allReviews[0]?.businesses?.name || "QReview Business";
 
       const res = await fetch("/api/send-report", {
         method: "POST",
@@ -425,22 +406,6 @@ export default function AnalyticsPage() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
-
-  // Tooltip formatters with proper types
-  const ratingTooltipFormatter = (value: ValueType, name: NameType) => {
-    if (typeof value === "number") {
-      return [`${value.toFixed(1)} ⭐`, "Average Rating"];
-    }
-    return [value, name];
-  };
-
-  const responseTooltipFormatter = (value: ValueType, name: NameType) => {
-    return [value, "Responses"];
-  };
-
-  const pieTooltipFormatter = (value: ValueType, name: NameType) => {
-    return [value, "Responses"];
   };
 
   const StatCard = ({
@@ -679,7 +644,12 @@ export default function AnalyticsPage() {
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                     }}
                     labelFormatter={(label) => formatDate(label as string)}
-                    formatter={ratingTooltipFormatter}
+                    formatter={(value, name) => {
+                      if (typeof value === "number") {
+                        return [`${value.toFixed(1)} ⭐`, "Average Rating"];
+                      }
+                      return [value, name];
+                    }}
                   />
                   <Line
                     type="monotone"
@@ -727,7 +697,7 @@ export default function AnalyticsPage() {
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                     }}
                     labelFormatter={(label) => formatDate(label as string)}
-                    formatter={responseTooltipFormatter}
+                    formatter={(value) => [value, "Responses"]}
                   />
                   <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -760,9 +730,11 @@ export default function AnalyticsPage() {
                     outerRadius={90}
                     paddingAngle={5}
                     dataKey="count"
-                    label={({ formName, percent }) =>
-                      `${formName} (${(percent * 100).toFixed(0)}%)`
-                    }
+                    nameKey="formName"
+                    label={({ name, percent }) => {
+                      if (!name || percent === undefined) return null;
+                      return `${name} (${(percent * 100).toFixed(0)}%)`;
+                    }}
                     labelLine={false}
                   >
                     {data.ratingByForm.map((entry, index) => (
@@ -779,8 +751,7 @@ export default function AnalyticsPage() {
                       border: "none",
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                     }}
-                    formatter={pieTooltipFormatter}
-                    labelFormatter={(label) => `Form ${label}`}
+                    formatter={(value) => [value, "Responses"]}
                   />
                   <Legend />
                 </PieChart>
