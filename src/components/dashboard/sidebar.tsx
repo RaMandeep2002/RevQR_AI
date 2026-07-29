@@ -3,144 +3,246 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Building2,
   LayoutDashboard,
-  LogOut,
   MessageSquare,
-  Palette,
-  Plug,
   QrCode,
   Settings,
-  X,
+  LogOut,
+  Building2,
+  BarChart3,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import type { ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-type NavItem = {
-  href: string; // Keep as string to avoid route type conflicts
-  label: string;
-  icon: ComponentType<{ className?: string }>;
+type NavSection = {
+  title: string;
+  items: NavItem[];
 };
 
-const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  // { href: "/dashboard/businesses", label: "Businesses", icon: Building2 },
-  { href: "/dashboard/reviews", label: "Reviews", icon: MessageSquare },
-  { href: "/dashboard/qr-customizer", label: "QR Customizer", icon: Palette },
-  { href: "/dashboard/integrations", label: "Integrations", icon: Plug },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings }, // Fixed: lowercase 's' in settings
+type NavItem = {
+  href: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  badge?: string;
+  badgeColor?: string;
+  exact?: boolean; // For routes that should match exactly
+};
+
+const navSections: NavSection[] = [
+  {
+    title: "MAIN",
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
+      { href: "/dashboard/reviews", label: "Reviews", icon: MessageSquare },
+      { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/dashboard/businesses", label: "Businesses", icon: Building2 },
+    ],
+  },
+  {
+    title: "QR",
+    items: [
+      { href: "/dashboard/qr-customizer", label: "QR Codes", icon: QrCode },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
+  const [email, setEmail] = useState("??");
+  const [initials, setInitials] = useState("??");
+  const [isClient, setIsClient] = useState(false);
+
   const pathname = usePathname();
   const supabase = createClient();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const email = user?.email || "User";
+        const name = user.user_metadata?.full_name || user.email || "User";
+        const parts = name.split(" ");
+        const calculatedInitials =
+          parts.length > 1
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : name.substring(0, 2).toUpperCase();
+        setEmail(email);
+        setInitials(calculatedInitials);
+      }
+    };
+    getUser();
+  }, [supabase.auth]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     window.location.href = "/auth";
   };
 
+  // Helper function to check if a route is active
+  const isRouteActive = (item: NavItem) => {
+    if (!pathname) return false;
+    
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    
+    // For nested routes, check if pathname starts with the href
+    // but handle the case where href is "/dashboard" and pathname is "/dashboard"
+    if (item.href === "/dashboard") {
+      return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+    }
+    
+    return pathname.startsWith(item.href);
+  };
+
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 w-72 transform overflow-hidden
-  border-r border-slate-200 dark:border-white/10
-  bg-white dark:bg-transparent
-  dark:bg-gradient-to-b dark:from-[#0F172A] dark:via-[#111827] dark:to-[#020617]
-  shadow-xl shadow-slate-200/50 dark:shadow-[0_0_40px_rgba(0,0,0,0.45)]
-  backdrop-blur-2xl
-  transition-transform duration-300
-  lg:sticky lg:top-0 lg:h-screen lg:translate-x-0
-  ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+      className={`fixed inset-y-0 left-0 z-50 w-[280px] transform overflow-hidden
+        border-r border-slate-200/50 dark:border-white/5
+        bg-white dark:bg-[#0B1120]
+        shadow-2xl shadow-slate-200/30 dark:shadow-[0_0_60px_rgba(0,0,0,0.6)]
+        transition-transform duration-300 ease-in-out
+        lg:sticky lg:top-0 lg:h-screen lg:translate-x-0
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
     >
-      {/* Top glow */}
-      <div className="pointer-events-none absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_35%)]" />
+      {/* Ambient Glow Effects */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/5 blur-3xl dark:bg-indigo-500/10" />
+        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-purple-500/5 blur-3xl dark:bg-purple-500/10" />
+        <div className="absolute top-1/2 left-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/5 blur-3xl dark:bg-emerald-500/5" />
+      </div>
 
-      {/* Bottom glow */}
-      <div className="pointer-events-none absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.12),transparent_30%)]" />
-
-      <div className="relative flex h-full flex-col px-5 py-6">
-        {/* Logo */}
-        <div className="mb-10 flex items-center justify-between">
-          {/* <img
-            src="/Qreview-logo.png"
-            alt="QReview Logo"
-            className="h-auto w-32 dark:brightness-0 dark:invert"
-          /> */}
-          <div className="flex items-center gap-3 text-zinc-100 group cursor-pointer">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 group-hover:border-emerald-500/30 transition-all duration-300">
-              <QrCode className="h-5 w-5" />
+      <div className="relative flex h-full flex-col px-4 py-6">
+        {/* Header / Logo */}
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25">
+              <QrCode className="h-5 w-5 text-white" />
             </div>
-            <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 group-hover:to-zinc-400 transition-colors">
-              QReview
-            </span>
+            <div>
+              <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                QReview
+              </p>
+              <p className="text-[10px] font-medium tracking-widest text-slate-400 dark:text-slate-500 uppercase">
+                Owner Dashboard
+              </p>
+            </div>
           </div>
 
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-2
-        text-slate-500 dark:text-slate-400 transition-all hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white
-        lg:hidden"
+            className="rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 p-2 backdrop-blur-sm
+              text-slate-500 dark:text-slate-400 transition-all hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white
+              lg:hidden"
             aria-label="Close sidebar"
           >
-            <X className="h-4 w-4" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-2">
-          {navItems.map((item) => {
-            const ActiveIcon = item.icon;
-            const active = pathname === item.href;
+        {/* Navigation Sections */}
+        <nav className="flex-1 overflow-y-auto">
+          {navSections.map((section) => (
+            <div key={section.title} className="mb-6">
+              <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase px-3">
+                {section.title}
+              </p>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = isRouteActive(item);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`group relative flex items-center gap-3 overflow-hidden
-            rounded-2xl px-4 py-3 text-sm font-semibold
-            transition-all duration-300
-            ${
-              active
-                ? "bg-indigo-50 dark:bg-transparent dark:bg-gradient-to-r dark:from-indigo-500/20 dark:to-purple-500/20 text-indigo-600 dark:text-white shadow-sm dark:shadow-lg dark:shadow-indigo-500/10 border border-indigo-100 dark:border-indigo-400/20"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
-            }`}
-              >
-                {/* Active Glow */}
-                {active && (
-                  <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_left,rgba(99,102,241,0.25),transparent_70%)]" />
-                )}
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+                        transition-all duration-200
+                        ${
+                          isActive
+                            ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+                        }`}
+                      >
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-r-full bg-indigo-500 dark:bg-indigo-400" />
+                        )}
 
-                <ActiveIcon
-                  className={`relative h-5 w-5 transition-transform duration-300 ${
-                    active
-                      ? "text-indigo-600 dark:text-indigo-300"
-                      : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-200 group-hover:scale-110"
-                  }`}
-                />
+                        <Icon
+                          className={`h-5 w-5 transition-all ${
+                            isActive
+                              ? "text-indigo-600 dark:text-indigo-300"
+                              : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                          }`}
+                        />
 
-                <span className="relative">{item.label}</span>
-              </Link>
-            );
-          })}
+                        <span>{item.label}</span>
+
+                        {item.badge && (
+                          <span
+                            className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badgeColor || "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300"}`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Footer */}
-        <div className="mt-6 border-t border-slate-200 dark:border-white/10 pt-6">
+        {/* User Footer */}
+        <div className="border-t border-slate-200/50 dark:border-white/5 pt-4">
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                {email}
+              </p>
+            </div>
+          </div>
+
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-2xl
-        px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400
-        transition-all duration-300
-        hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300"
+            className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+              text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10
+              transition-all duration-200"
           >
             <LogOut className="h-5 w-5" />
-            Sign Out
+            Exit
           </button>
         </div>
       </div>

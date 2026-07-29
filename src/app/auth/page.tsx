@@ -157,7 +157,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50/50 px-4 transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
+                  className="h-12 rounded-xl border border-slate-400 bg-slate-50/50 px-4 transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
                 />
               </div>
 

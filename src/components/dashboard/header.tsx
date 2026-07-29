@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogOut, Menu, Settings, Sun, Moon } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  Settings,
+  Sun,
+  Moon,
+  LayoutDashboard,
+  Users,
+  FileText,
+  BarChart3,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 
 export function DashboardHeader({
@@ -17,7 +27,10 @@ export function DashboardHeader({
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const supabase = createClient();
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+
+  const pathSegments = pathname ? pathname.split("/").filter(Boolean) : [];
 
   useEffect(() => {
     const getUser = async () => {
@@ -43,8 +56,9 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="flex h-20 shrink-0 items-center justify-between bg-white px-8 dark:border-slate-700 dark:bg-transparent">
+    <header className="flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8 dark:border-slate-700 dark:bg-transparent">
       <div className="flex flex-1 items-center gap-4">
+        {/* Mobile Menu Button */}
         <button
           onClick={onOpenSidebar}
           className="rounded-md p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 lg:hidden"
@@ -52,8 +66,39 @@ export function DashboardHeader({
         >
           <Menu className="h-5 w-5" />
         </button>
+
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+          {pathSegments.map((segment, index) => {
+            const isLast = index === pathSegments.length - 1;
+            const title =
+              segment.charAt(0).toUpperCase() +
+              segment.slice(1).replace(/-/g, " ");
+            const href = `/${pathSegments.slice(0, index + 1).join("/")}`;
+
+            return (
+              <div key={href} className="flex items-center gap-2">
+                {index > 0 && (
+                  <span className="text-slate-300 dark:text-slate-600">/</span>
+                )}
+                {isLast ? (
+                  <span className="text-slate-900 dark:text-white font-bold text-lg">
+                    {title}
+                  </span>
+                ) : (
+                  <Link
+                    href={href as any}
+                    className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors hidden sm:block"
+                  >
+                    {title}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-      
+
       <div className="flex items-center gap-4">
         {/* Theme Toggle Button */}
         <div className="relative">
@@ -81,7 +126,7 @@ export function DashboardHeader({
                     Theme
                   </p>
                 </div>
-                
+
                 <button
                   onClick={() => {
                     setTheme("light");
@@ -98,10 +143,12 @@ export function DashboardHeader({
                     Light
                   </div>
                   {theme === "light" && (
-                    <span className="text-brand-500 dark:text-brand-400">✓</span>
+                    <span className="text-brand-500 dark:text-brand-400">
+                      ✓
+                    </span>
                   )}
                 </button>
-                
+
                 <button
                   onClick={() => {
                     setTheme("dark");
@@ -118,7 +165,9 @@ export function DashboardHeader({
                     Dark
                   </div>
                   {theme === "dark" && (
-                    <span className="text-brand-500 dark:text-brand-400">✓</span>
+                    <span className="text-brand-500 dark:text-brand-400">
+                      ✓
+                    </span>
                   )}
                 </button>
               </div>

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 import { generateProfessionalQrImage } from "@/lib/utils";
 import { Business } from "@/types";
+import { useNextStep } from "nextstepjs";
 
 const defaultForm = {
   name: "",
@@ -36,6 +37,22 @@ export default function OnboardingPage() {
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [createdBusiness, setCreatedBusiness] = useState<Business | null>(null);
   const [checkingExisting, setCheckingExisting] = useState(true);
+
+  const [hasSeenTour, setHasSeenTour] = useState(false);
+  const { startNextStep } = useNextStep();
+
+  useEffect(() => {
+    const tourSeen = localStorage.getItem("qreview_onbaoding_tour_seen");
+    if (!tourSeen) {
+      // Start tour after data loads
+      const timer = setTimeout(() => {
+        startNextStep("onboardingTour");
+      }, 1500);
+      return () => clearTimeout(timer);
+    } else {
+      setHasSeenTour(true);
+    }
+  }, [startNextStep]);
 
   useEffect(() => {
     const checkExistingSetup = async () => {
@@ -116,7 +133,9 @@ export default function OnboardingPage() {
       setStage("ready");
     } catch {
       setStage("idle");
-      setError("Business created, but the QR poster could not be generated. Please open the dashboard to try again.");
+      setError(
+        "Business created, but the QR poster could not be generated. Please open the dashboard to try again.",
+      );
     }
   };
 
@@ -144,7 +163,11 @@ export default function OnboardingPage() {
           />
           <div className="absolute inset-0 bg-slate-950/70" />
           <div className="relative z-10 flex items-center justify-between">
-            <img src="/Qreview-logo.png" alt="QReview Logo" className="h-auto w-44 brightness-0 invert" />
+            <img
+              src="/Qreview-logo.png"
+              alt="QReview Logo"
+              className="h-auto w-44 brightness-0 invert"
+            />
             <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-100">
               Setup
             </span>
@@ -155,11 +178,16 @@ export default function OnboardingPage() {
               <Sparkles className="h-4 w-4" />
               First QR in under two minutes
             </div>
-            <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+            <h1
+              id="tour-welcome"
+              className="text-4xl font-black leading-tight tracking-tight sm:text-5xl"
+            >
               Build your first review QR setup.
             </h1>
             <p className="mt-5 max-w-lg text-base font-medium leading-7 text-slate-200">
-              Add your business details once. QReview creates a review collection QR poster and opens the dashboard with your new business ready to manage.
+              Add your business details once. QReview creates a review
+              collection QR poster and opens the dashboard with your new
+              business ready to manage.
             </p>
           </div>
 
@@ -169,7 +197,10 @@ export default function OnboardingPage() {
               ["2", "QR poster"],
               ["3", "Dashboard"],
             ].map(([step, label]) => (
-              <div key={step} className="rounded-lg border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <div
+                key={step}
+                className="rounded-lg border border-white/10 bg-white/10 p-4 backdrop-blur"
+              >
                 <p className="text-xs font-black text-emerald-200">{step}</p>
                 <p className="mt-2 text-sm font-bold text-white">{label}</p>
               </div>
@@ -181,69 +212,96 @@ export default function OnboardingPage() {
           <div className="mx-auto grid w-full max-w-5xl gap-8 xl:grid-cols-[1fr_0.85fr]">
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
               <div className="mb-8">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Onboarding</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Create your business</h2>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
+                  Onboarding
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+                  Create your business
+                </h2>
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                  These details power the customer-facing review page and your downloadable QR poster.
+                  These details power the customer-facing review page and your
+                  downloadable QR poster.
                 </p>
               </div>
 
-              <form className="grid gap-5" onSubmit={handleSubmit}>
+              <form
+                id="tour-business-form"
+                className="grid gap-5"
+                onSubmit={handleSubmit}
+              >
                 <label className="grid gap-2">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Business name</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    Business name
+                  </span>
                   <Input
                     value={form.name}
                     onChange={(event) => updateForm("name", event.target.value)}
                     placeholder="QReview Coffee House"
-                     
+
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <label className="grid gap-2">
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-500">Contact email</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+                      Contact email
+                    </span>
                     <Input
                       type="email"
                       value={form.email}
-                      onChange={(event) => updateForm("email", event.target.value)}
+                      onChange={(event) =>
+                        updateForm("email", event.target.value)
+                      }
                       placeholder="hello@company.com"
-                       
+
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
 
                   <label className="grid gap-2">
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-500">Category</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+                      Category
+                    </span>
                     <Input
                       value={form.category}
-                      onChange={(event) => updateForm("category", event.target.value)}
+                      onChange={(event) =>
+                        updateForm("category", event.target.value)
+                      }
                       placeholder="Restaurant, Salon, Clinic"
-                       
+
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
                 </div>
 
-                <label className="grid gap-2">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Google Business URL</span>
+                <label id="tour-google-url" className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    Google Business URL
+                  </span>
                   <Input
                     type="url"
                     value={form.googleBusinessUrl}
-                    onChange={(event) => updateForm("googleBusinessUrl", event.target.value)}
+                    onChange={(event) =>
+                      updateForm("googleBusinessUrl", event.target.value)
+                    }
                     placeholder="https://g.page/r/your-business/review"
-                     
+
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Location</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    Location
+                  </span>
                   <Input
                     value={form.location}
-                    onChange={(event) => updateForm("location", event.target.value)}
+                    onChange={(event) =>
+                      updateForm("location", event.target.value)
+                    }
                     placeholder="New Delhi, India"
-                     
+
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -255,53 +313,89 @@ export default function OnboardingPage() {
                 )}
 
                 <Button
+                  id="tour-submit"
                   type="submit"
                   loading={isBusy}
                   disabled={isBusy}
                   className="h-12 rounded-lg bg-slate-950 text-sm font-black text-white hover:bg-slate-800"
                 >
-                  {stage === "generating" ? "Generating QR poster" : "Create QR setup"}
+                  {stage === "generating"
+                    ? "Generating QR poster"
+                    : "Create QR setup"}
                   {!isBusy && <ArrowRight className="h-4 w-4" />}
                 </Button>
               </form>
             </div>
 
             <aside className="grid gap-5">
-              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60">
+              <div
+                id="tour-progress"
+                className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60"
+              >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">Progress</p>
-                    <h3 className="mt-1 text-lg font-black text-slate-950">Launch status</h3>
+                    <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">
+                      Progress
+                    </p>
+                    <h3 className="mt-1 text-lg font-black text-slate-950">
+                      Launch status
+                    </h3>
                   </div>
                   <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
-                    {stage === "ready" ? <CheckCircle2 className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
+                    {stage === "ready" ? (
+                      <CheckCircle2 className="h-5 w-5" />
+                    ) : (
+                      <QrCode className="h-5 w-5" />
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
+                  <div
+                    className="h-full rounded-full bg-emerald-600 transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
 
                 <div className="mt-6 grid gap-3">
                   {[
                     ["Profile", stage !== "idle"],
-                    ["QR generated", stage === "generating" || stage === "ready"],
+                    [
+                      "QR generated",
+                      stage === "generating" || stage === "ready",
+                    ],
                     ["Dashboard handoff", stage === "ready"],
                   ].map(([label, active]) => (
-                    <div key={String(label)} className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                      <BadgeCheck className={`h-4 w-4 ${active ? "text-emerald-600" : "text-slate-300"}`} />
+                    <div
+                      key={String(label)}
+                      className="flex items-center gap-3 text-sm font-bold text-slate-600"
+                    >
+                      <BadgeCheck
+                        className={`h-4 w-4 ${active ? "text-emerald-600" : "text-slate-300"}`}
+                      />
                       {label}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 p-6 bg-white text-black shadow-xl shadow-slate-300/60">
+              <div
+                id="tour-qr-preview"
+                className="rounded-lg border border-slate-200 p-6 bg-white text-black shadow-xl shadow-slate-300/60"
+              >
                 {qrDataUrl ? (
                   <div className="text-center">
-                    <img src={qrDataUrl} alt="Generated QR poster" className="mx-auto w-48 rounded-lg border border-white/10 shadow-2xl" />
-                    <p className="mt-4 text-sm font-black text-emerald-200">QR is ready</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-300">Opening your dashboard now...</p>
+                    <img
+                      src={qrDataUrl}
+                      alt="Generated QR poster"
+                      className="mx-auto w-48 rounded-lg border border-white/10 shadow-2xl"
+                    />
+                    <p className="mt-4 text-sm font-black text-emerald-200">
+                      QR is ready
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-300">
+                      Opening your dashboard now...
+                    </p>
                   </div>
                 ) : (
                   <div>

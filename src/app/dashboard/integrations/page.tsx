@@ -11,7 +11,8 @@ import {
   Plug,
   Star,
 } from "lucide-react";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Card } from "@/components/ui/card";
 import { Business } from "@/types";
 
 type Platform = {

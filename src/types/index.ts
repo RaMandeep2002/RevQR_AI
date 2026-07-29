@@ -1,3 +1,13 @@
+export interface User {
+  id: string;
+  email: string;
+  subscription_tier: "free" | "pro" | "enterprise";
+  subscription_expires_at?: string;
+  business_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export type Business = {
   id: string;
   owner_id: string;

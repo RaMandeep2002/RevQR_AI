@@ -96,7 +96,7 @@ export const generateProfessionalQrImage = async (
       // Footer
       ctx.fillStyle = "#94a3b8";
       ctx.font = "400 18px sans-serif";
-      ctx.fillText("Powered by RevQR AI", canvas.width / 2, 1175);
+      ctx.fillText("Powered by QReview", canvas.width / 2, 1175);
 
       resolve(canvas.toDataURL("image/png"));
     };

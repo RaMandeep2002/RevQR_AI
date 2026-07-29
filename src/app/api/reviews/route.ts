@@ -20,6 +20,7 @@ export async function GET() {
     .in("business_id", businessIds)
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+   console.log(data);
   return NextResponse.json({ data });
 }
 
@@ -44,5 +45,6 @@ export async function POST(request: Request) {
     .select("*")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  console.log(data);
   return NextResponse.json({ data }, { status: 201 });
 }
