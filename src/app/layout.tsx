@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "QReview | AI-Powered QR Review Management & Sentiment Analysis",
   description:
     "Boost your reputation with QReview. Use AI-powered QR codes to collect reviews, automate smart replies, and analyze customer sentiment in real-time. Start for free!",
+    icons: {
+    icon: '/icon.ico', // or .png, .svg, etc.
+  },
 };
 
 const jsonLd = {
