@@ -7,10 +7,7 @@ import {
   Settings,
   Sun,
   Moon,
-  LayoutDashboard,
-  Users,
-  FileText,
-  BarChart3,
+  CircleUser,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -196,6 +193,15 @@ export function DashboardHeader({
                     Account
                   </p>
                 </div>
+
+                  <Link
+                  href="/dashboard/settings"
+                  onClick={() => setShowDropdown(false)}
+                  className="flex items-center gap-3 w-full rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-700 transition-all dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-brand-300"
+                >
+                  <CircleUser className="h-4 w-4" />
+                  Profile
+                </Link>
 
                 <Link
                   href="/dashboard/settings"

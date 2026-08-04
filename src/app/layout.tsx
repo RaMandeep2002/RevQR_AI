@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import TourProvider from "@/components/NextStepProvider";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
   title: "QReview | AI-Powered QR Review Management & Sentiment Analysis",
   description:
     "Boost your reputation with QReview. Use AI-powered QR codes to collect reviews, automate smart replies, and analyze customer sentiment in real-time. Start for free!",
-    icons: {
-    icon: '/icon.ico', // or .png, .svg, etc.
+  icons: {
+    icon: "/icon.ico", // or .png, .svg, etc.
   },
 };
 
@@ -43,6 +44,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body>
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="beforeInteractive"
+        />
         <ThemeProvider>
           <TourProvider>{children}</TourProvider>
         </ThemeProvider>
