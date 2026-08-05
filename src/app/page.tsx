@@ -187,46 +187,6 @@ export default function HomePage() {
           <Hero />
           {/* Features Grid */}
           <Features />
-
-          {/* CTA Section */}
-          <section className="relative isolate overflow-hidden bg-gradient-to-b from-zinc-900/50 to-zinc-950 border border-white/5 py-24 sm:py-32 rounded-[3rem] mx-4 sm:mx-8 shadow-2xl">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay" />
-            <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-              <div className="mx-auto max-w-2xl text-center">
-                <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-                  Boost your reviews today.
-                </h2>
-                <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-zinc-400 font-medium">
-                  Join hundreds of businesses using QReview to streamline their
-                  customer feedback loop and skyrocket their ratings.
-                </p>
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link
-                    href="/auth"
-                    className="w-full sm:w-auto rounded-full bg-white px-8 py-4 text-lg font-bold text-zinc-950 shadow-lg hover:shadow-white/20 hover:scale-105 active:scale-95 transition-all duration-300"
-                  >
-                    Get Started for Free
-                  </Link>
-                  <a
-                    href="#"
-                    className="w-full sm:w-auto rounded-full border border-white/10 px-8 py-4 text-lg font-bold text-white hover:bg-white/5 transition-all duration-300"
-                  >
-                    Contact Sales{" "}
-                    <span aria-hidden="true" className="ml-1">
-                      →
-                    </span>
-                  </a>
-                </div>
-              </div>
-            </div>
-            {/* Decorative background glow */}
-            <div
-              className="absolute top-1/2 left-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 blur-[120px] opacity-40 pointer-events-none"
-              aria-hidden="true"
-            >
-              <div className="aspect-[1155/678] w-[50rem] bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full" />
-            </div>
-          </section>
         </div>
       </main>
 
