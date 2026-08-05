@@ -26,10 +26,9 @@ import {
   QrCode,
   ArrowRight,
 } from "lucide-react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import NavBar from "@/components/LandingPage/NavBar";
-import Link from 'next/link'
+import Link from "next/link";
 
 type PolicySection = {
   id: string;
@@ -716,8 +715,11 @@ export default function PrivacyPolicesPage() {
 
   // Filter policies based on search AND category
   const filteredPolicies = policies.filter((policy) => {
-    const matchesSearch = policy.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || policy.category === selectedCategory;
+    const matchesSearch = policy.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || policy.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -750,16 +752,16 @@ export default function PrivacyPolicesPage() {
       {/* Background decoration */}
       <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-zinc-950/70 backdrop-blur-2xl px-6 py-4 transition-all duration-300">
         <div className="container mx-auto flex max-w-7xl items-center justify-between">
-	<Link href="/">
-          <div className="flex items-center gap-3 text-zinc-100 group cursor-pointer">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 group-hover:border-emerald-500/30 transition-all duration-300">
-              <QrCode className="h-5 w-5" />
+          <Link href="/">
+            <div className="flex items-center gap-3 text-zinc-100 group cursor-pointer">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 group-hover:border-emerald-500/30 transition-all duration-300">
+                <QrCode className="h-5 w-5" />
+              </div>
+              <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 group-hover:to-zinc-400 transition-colors">
+                QReview
+              </span>
             </div>
-            <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 group-hover:to-zinc-400 transition-colors">
-              QReview
-            </span>
-          </div>
-	</Link>
+          </Link>
           <div className="hidden items-center gap-10 md:flex">
             <Link
               href="/auth"
