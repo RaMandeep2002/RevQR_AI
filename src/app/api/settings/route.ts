@@ -13,7 +13,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("prompt_settings")
-    .select("keywords,language,tone,bill_items")
+    .select("keywords,language,tone")
     .eq("owner_id", user.id)
     .maybeSingle();
 
@@ -23,7 +23,6 @@ export async function GET() {
       keywords: "",
       language: "English",
       tone: "Professional",
-      bill_items: ""
     }
   });
 }
@@ -39,7 +38,6 @@ export async function PUT(request: Request) {
   const keywords = String(body.keywords ?? "").trim();
   const language = String(body.language ?? "English").trim();
   const tone = String(body.tone ?? "Professional").trim();
-  const billItems = String(body.billItems ?? "").trim();
 
   if (!LANGUAGES.includes(language)) return NextResponse.json({ error: "Invalid language." }, { status: 400 });
   if (!TONES.includes(tone)) return NextResponse.json({ error: "Invalid tone." }, { status: 400 });
@@ -52,12 +50,11 @@ export async function PUT(request: Request) {
         keywords,
         language,
         tone,
-        bill_items: billItems,
         updated_at: new Date().toISOString()
       },
       { onConflict: "owner_id" }
     )
-    .select("keywords,language,tone,bill_items")
+    .select("keywords,language,tone")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

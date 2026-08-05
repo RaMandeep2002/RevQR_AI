@@ -15,7 +15,6 @@ export default function DashboardSettingsPage() {
   const [language, setLanguage] =
     useState<(typeof LANGUAGES)[number]>("English");
   const [tone, setTone] = useState<(typeof TONES)[number]>("Professional");
-  const [billItems, setBillItems] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,7 +32,6 @@ export default function DashboardSettingsPage() {
       (json.data.language || "English") as (typeof LANGUAGES)[number],
     );
     setTone((json.data.tone || "Professional") as (typeof TONES)[number]);
-    setBillItems(json.data.bill_items || "");
   };
 
   useEffect(() => {
@@ -47,7 +45,7 @@ export default function DashboardSettingsPage() {
     const response = await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ keywords, language, tone, billItems }),
+      body: JSON.stringify({ keywords, language, tone }),
     });
     const json = await response.json();
     setSaving(false);
@@ -121,21 +119,6 @@ export default function DashboardSettingsPage() {
             </button>
           ))}
         </div>
-      </Card>
-
-      <Card className="rounded-2xl bg-slate-50 p-5 dark:bg-[#0B1739] border-[#343B4F]/80">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          Bill Items
-        </h2>
-        <p className="text-sm text-slate-400 dark:text-slate-500">
-          Add bill items AI will use in reviews.
-        </p>
-        <Input
-          value={billItems}
-          onChange={(e) => setBillItems(e.target.value)}
-          placeholder="Enter items (comma separated)"
-          className="mt-3 h-12 rounded-xl border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
-        />
       </Card>
 
       {error ? (
