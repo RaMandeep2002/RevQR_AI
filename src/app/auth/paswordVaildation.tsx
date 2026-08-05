@@ -25,7 +25,7 @@ export interface PasswordInputProps {
   id?: string;
   placeholder?: string;
   className?: string;
-  showValidation?: boolean; // Add this prop to control validation visibility
+  showValidation?: boolean;
 }
 
 // Calculate password strength
@@ -42,23 +42,23 @@ const getPasswordStrength = (password: string): PasswordStrength => {
     return {
       level: "weak",
       text: "Weak",
-      color: "text-red-500",
-      bg: "bg-red-100",
+      color: "text-red-500 dark:text-red-400",
+      bg: "bg-red-100 dark:bg-red-950/50",
     };
   }
   if (strength <= 4) {
     return {
       level: "medium",
       text: "Medium",
-      color: "text-yellow-500",
-      bg: "bg-yellow-100",
+      color: "text-yellow-500 dark:text-yellow-400",
+      bg: "bg-yellow-100 dark:bg-yellow-950/50",
     };
   }
   return {
     level: "strong",
     text: "Strong",
-    color: "text-green-500",
-    bg: "bg-green-100",
+    color: "text-green-500 dark:text-green-400",
+    bg: "bg-green-100 dark:bg-green-950/50",
   };
 };
 
@@ -87,7 +87,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   id = "password",
   placeholder = "••••••••",
   className = "",
-  showValidation = false // Default to false - no validation visible
+  showValidation = false
 }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -98,7 +98,6 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   ): void => {
     const newPassword = e.target.value;
     onChange(e);
-    // Only validate if showValidation is true
     if (showValidation) {
       setValidation(validatePassword(newPassword));
     } else {
@@ -106,7 +105,6 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
     }
   };
 
-  // Reset validation when showValidation changes
   const shouldShowValidation = showValidation && value.length > 0 && validation;
   const shouldShowError = showValidation && validation?.isValid === false && value.length > 0 && isFocused;
   const shouldShowSuccess = showValidation && validation?.isValid && value.length > 0;
@@ -128,8 +126,8 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             border-2 
             px-4 
             pr-12 
-            text-slate-700 
-            placeholder:text-slate-400 
+            text-slate-700 dark:text-slate-200
+            placeholder:text-slate-400 dark:placeholder:text-slate-500
             transition-all 
             duration-200 
             ease-in-out
@@ -137,12 +135,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             focus:outline-none
             ${
               shouldShowError
-                ? "border-red-400 bg-red-50/30 focus:border-red-500 focus:bg-red-50/50 focus:ring-4 focus:ring-red-500/20"
+                ? "border-red-400 dark:border-red-500 bg-red-50/30 dark:bg-red-950/30 focus:border-red-500 focus:bg-red-50/50 dark:focus:bg-red-950/50 focus:ring-4 focus:ring-red-500/20 dark:focus:ring-red-500/30"
                 : shouldShowSuccess
-                  ? "border-green-400 bg-green-50/30 focus:border-green-500 focus:bg-green-50/50 focus:ring-4 focus:ring-green-500/20"
+                  ? "border-green-400 dark:border-green-500 bg-green-50/30 dark:bg-green-950/30 focus:border-green-500 focus:bg-green-50/50 dark:focus:bg-green-950/50 focus:ring-4 focus:ring-green-500/20 dark:focus:ring-green-500/30"
                   : isFocused
-                    ? "border-brand-500 bg-white shadow-lg shadow-brand-500/10 focus:ring-4 focus:ring-brand-500/20"
-                    : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white"
+                    ? "border-brand-500 bg-white dark:bg-slate-800 shadow-lg shadow-brand-500/10 dark:shadow-brand-500/5 focus:ring-4 focus:ring-brand-500/20 dark:focus:ring-brand-500/30"
+                    : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800"
             }
             ${className}
           `}
@@ -152,12 +150,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         {showValidation && value.length > 0 && validation && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
             {validation.isValid ? (
-              <svg className="h-4 w-4 text-green-500 animate-in fade-in zoom-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-green-500 dark:text-green-400 animate-in fade-in zoom-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             ) : (
               isFocused && (
-                <svg className="h-4 w-4 text-red-400 animate-in fade-in zoom-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 text-red-400 dark:text-red-500 animate-in fade-in zoom-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )
@@ -169,7 +167,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none transition-colors"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
@@ -218,12 +216,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
               <div
                 className={`h-1.5 w-16 rounded-full transition-all ${
                   validation.strength.level === "weak"
-                    ? "bg-red-500"
+                    ? "bg-red-500 dark:bg-red-400"
                     : validation.strength.level === "medium"
-                      ? "bg-yellow-500"
+                      ? "bg-yellow-500 dark:bg-yellow-400"
                       : validation.strength.level === "strong"
-                        ? "bg-green-500"
-                        : "bg-slate-200"
+                        ? "bg-green-500 dark:bg-green-400"
+                        : "bg-slate-200 dark:bg-slate-700"
                 }`}
               />
               <div
@@ -231,16 +229,16 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
                   validation.strength.level === "medium" ||
                   validation.strength.level === "strong"
                     ? validation.strength.level === "medium"
-                      ? "bg-yellow-500"
-                      : "bg-green-500"
-                    : "bg-slate-200"
+                      ? "bg-yellow-500 dark:bg-yellow-400"
+                      : "bg-green-500 dark:bg-green-400"
+                    : "bg-slate-200 dark:bg-slate-700"
                 }`}
               />
               <div
                 className={`h-1.5 w-16 rounded-full transition-all ${
                   validation.strength.level === "strong"
-                    ? "bg-green-500"
-                    : "bg-slate-200"
+                    ? "bg-green-500 dark:bg-green-400"
+                    : "bg-slate-200 dark:bg-slate-700"
                 }`}
               />
             </div>
@@ -255,7 +253,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           {isFocused && (
             <div className="space-y-1 text-xs animate-in fade-in duration-200">
               <p
-                className={`flex items-center gap-1.5 ${validation.isValidLength ? "text-green-600" : "text-slate-500"}`}
+                className={`flex items-center gap-1.5 ${
+                  validation.isValidLength 
+                    ? "text-green-600 dark:text-green-400" 
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
               >
                 <span className="text-sm">
                   {validation.isValidLength ? "✓" : "○"}
@@ -263,7 +265,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
                 At least 8 characters
               </p>
               <p
-                className={`flex items-center gap-1.5 ${validation.hasUpperCase ? "text-green-600" : "text-slate-500"}`}
+                className={`flex items-center gap-1.5 ${
+                  validation.hasUpperCase 
+                    ? "text-green-600 dark:text-green-400" 
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
               >
                 <span className="text-sm">
                   {validation.hasUpperCase ? "✓" : "○"}
@@ -271,7 +277,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
                 Uppercase letter (A-Z)
               </p>
               <p
-                className={`flex items-center gap-1.5 ${validation.hasLowerCase ? "text-green-600" : "text-slate-500"}`}
+                className={`flex items-center gap-1.5 ${
+                  validation.hasLowerCase 
+                    ? "text-green-600 dark:text-green-400" 
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
               >
                 <span className="text-sm">
                   {validation.hasLowerCase ? "✓" : "○"}
@@ -279,7 +289,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
                 Lowercase letter (a-z)
               </p>
               <p
-                className={`flex items-center gap-1.5 ${validation.hasNumbers ? "text-green-600" : "text-slate-500"}`}
+                className={`flex items-center gap-1.5 ${
+                  validation.hasNumbers 
+                    ? "text-green-600 dark:text-green-400" 
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
               >
                 <span className="text-sm">
                   {validation.hasNumbers ? "✓" : "○"}
@@ -287,7 +301,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
                 Number (0-9)
               </p>
               <p
-                className={`flex items-center gap-1.5 ${validation.hasSpecialChar ? "text-green-600" : "text-slate-500"}`}
+                className={`flex items-center gap-1.5 ${
+                  validation.hasSpecialChar 
+                    ? "text-green-600 dark:text-green-400" 
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
               >
                 <span className="text-sm">
                   {validation.hasSpecialChar ? "✓" : "○"}
