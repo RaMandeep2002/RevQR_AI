@@ -20,6 +20,7 @@ import NavBar from "@/components/LandingPage/NavBar";
 import Footer from "@/components/LandingPage/Footer";
 import Hero from "@/components/LandingPage/HeroSection";
 import Features from "@/components/LandingPage/Features";
+import { useTheme } from "next-themes";
 
 const plans = [
   {
@@ -89,6 +90,7 @@ const plans = [
 ];
 
 export default function HomePage() {
+  const { theme, setTheme } = useTheme();
   const [isYearly, setIsYearly] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<(typeof plans)[0] | null>(
     null,
@@ -160,23 +162,47 @@ export default function HomePage() {
   };
 
   return (
-    <div className="magicpattern relative flex min-h-dvh flex-col bg-background text-foreground">
+      <div className={`${theme === "dark" ? "magicpattern" : ""} relative flex min-h-dvh flex-col bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white transition-colors duration-300`}>
       {/* Fixed background layers */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       >
-        <div
-          className="absolute inset-0 opacity-[0.35]"
+        {/* Grid Pattern - Light/Dark adaptive */}
+        {/* <div
+          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.15]"
           style={{
-            backgroundImage:
-              "linear-gradient(to right, var(--color-border) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border) 1px, transparent 1px)",
+            backgroundImage: `
+              linear-gradient(to right, var(--grid-color, #e5e7eb) 1px, transparent 1px),
+              linear-gradient(to bottom, var(--grid-color, #e5e7eb) 1px, transparent 1px)
+            `,
             backgroundSize: "64px 64px",
           }}
         />
+         */}
+        {/* Glow Effect - Light/Dark adaptive */}
         <div
-          className="absolute left-1/2 top-[-10rem] h-[32rem] w-[70rem] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ background: "var(--brand-glow)", opacity: 0.35 }}
+          className="absolute left-1/2 top-[-10rem] h-[32rem] w-[70rem] -translate-x-1/2 rounded-full blur-3xl transition-all duration-500"
+          style={{
+            background: "var(--brand-glow)",
+            opacity: "var(--glow-opacity, 0.35)",
+          }}
+        />
+        
+        {/* Additional Light Theme Glow */}
+        <div
+          className="absolute right-1/4 bottom-[-10rem] h-[24rem] w-[50rem] rounded-full blur-3xl transition-all duration-500 dark:opacity-0"
+          style={{
+            background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)",
+          }}
+        />
+        
+        {/* Additional Dark Theme Glow */}
+        <div
+          className="absolute left-1/4 top-1/2 h-[20rem] w-[40rem] rounded-full blur-3xl transition-all duration-500 opacity-0 dark:opacity-30"
+          style={{
+            background: "radial-gradient(circle, rgba(16,185,129,0.03) 0%, transparent 70%)",
+          }}
         />
       </div>
 
@@ -187,212 +213,11 @@ export default function HomePage() {
           <Hero />
           {/* Features Grid */}
           <Features />
+
         </div>
       </main>
 
       <Footer />
-      {/* Simulated Checkout Modal */}
-      {selectedPlan && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 backdrop-blur-xl p-4 transition-all duration-300">
-          <div
-            className="relative w-full max-w-md rounded-[2rem] bg-zinc-900 border border-white/10 p-8 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Background Accent Glow */}
-            <div className="absolute -top-16 -right-16 -z-10 h-48 w-48 rounded-full bg-emerald-500/20 blur-[60px] pointer-events-none" />
-
-            <div className="flex items-center justify-between border-b border-white/10 pb-5 mb-6">
-              <div>
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-[0.15em]">
-                  Secure Checkout
-                </span>
-                <h3 className="text-2xl font-extrabold text-white mt-1 tracking-tight">
-                  Subscribe to {selectedPlan.name}
-                </h3>
-              </div>
-              {checkoutStep !== "loading" && (
-                <button
-                  onClick={() => setSelectedPlan(null)}
-                  className="rounded-full p-2 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white transition-all duration-300"
-                  aria-label="Close checkout"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-
-            <div className="mt-4">
-              {checkoutStep === "loading" && (
-                <div className="py-16 flex flex-col items-center justify-center text-center">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 rounded-full blur-md bg-emerald-500/30 animate-pulse" />
-                    <Loader2 className="h-12 w-12 text-emerald-400 animate-spin relative z-10" />
-                  </div>
-                  <p className="text-white font-bold text-xl mb-2">
-                    Processing Payment...
-                  </p>
-                  <p className="text-zinc-400 text-sm font-medium">
-                    Verifying with secure sandbox environment
-                  </p>
-                </div>
-              )}
-
-              {checkoutStep === "success" && (
-                <div className="py-16 flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 rounded-full blur-lg bg-emerald-500/40 animate-pulse" />
-                    <div className="h-20 w-20 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center relative z-10">
-                      <Check className="h-10 w-10 text-emerald-400 animate-bounce" />
-                    </div>
-                  </div>
-                  <p className="text-white font-extrabold text-3xl mb-3 tracking-tight">
-                    Success!
-                  </p>
-                  <p className="text-zinc-400 text-sm font-medium px-4 leading-relaxed">
-                    Your{" "}
-                    <strong className="text-white">{selectedPlan.name}</strong>{" "}
-                    plan is now active. Preparing your dashboard...
-                  </p>
-                </div>
-              )}
-
-              {checkoutStep === "idle" && (
-                <form onSubmit={handleCheckoutSubmit} className="space-y-5">
-                  {/* Plan Summary */}
-                  <div className="rounded-2xl bg-zinc-950 p-5 border border-white/5 flex justify-between items-center shadow-inner">
-                    <div>
-                      <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">
-                        Plan
-                      </p>
-                      <p className="text-white font-bold text-lg">
-                        {selectedPlan.name}{" "}
-                        <span className="text-zinc-400 text-sm font-medium">
-                          ({isYearly ? "Annual" : "Monthly"})
-                        </span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">
-                        Total
-                      </p>
-                      <p className="text-emerald-400 font-extrabold text-2xl">
-                        ₹
-                        {(isYearly
-                          ? selectedPlan.priceYearly
-                          : selectedPlan.priceMonthly
-                        ).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Payment Form Fields */}
-                  <div className="space-y-4 pt-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
-                          Name on Card
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="John Doe"
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                          className="w-full rounded-xl bg-zinc-950/50 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all duration-300 shadow-inner"
-                        />
-                      </div>
-
-                      <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="john@example.com"
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                          className="w-full rounded-xl bg-zinc-950/50 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all duration-300 shadow-inner"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
-                        Card Number
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="4111 2222 3333 4444"
-                        pattern="[0-9\s]{13,19}"
-                        value={formData.card}
-                        onChange={(e) =>
-                          setFormData({ ...formData, card: e.target.value })
-                        }
-                        className="w-full rounded-xl bg-zinc-950/50 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all duration-300 shadow-inner tracking-widest"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
-                          Expiry Date
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="MM/YY"
-                          pattern="(0[1-9]|1[0-2])\/[0-9]{2}"
-                          value={formData.expiry}
-                          onChange={(e) =>
-                            setFormData({ ...formData, expiry: e.target.value })
-                          }
-                          className="w-full rounded-xl bg-zinc-950/50 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all duration-300 shadow-inner"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
-                          CVC
-                        </label>
-                        <input
-                          type="password"
-                          required
-                          maxLength={4}
-                          placeholder="•••"
-                          value={formData.cvc}
-                          onChange={(e) =>
-                            setFormData({ ...formData, cvc: e.target.value })
-                          }
-                          className="w-full rounded-xl bg-zinc-950/50 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all duration-300 shadow-inner"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-4 font-bold text-base shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 mt-8"
-                  >
-                    <span>Activate Subscription</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-
-                  <p className="text-[11px] text-zinc-500 text-center font-medium mt-4 flex items-center justify-center gap-1.5">
-                    <Shield className="h-3 w-3" /> Secure sandbox transaction.
-                    No real card billed.
-                  </p>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
