@@ -25,6 +25,7 @@
     "qr-code-styling": "^1.9.2",
     "qrcode": "^1.5.4",
     "radix-ui": "^1.4.3",
+    "razorpay": "^2.9.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-email": "^6.6.5",
