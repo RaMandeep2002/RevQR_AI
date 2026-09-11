@@ -53,7 +53,7 @@ export async function GET(
         business,
         reviews: reviews || [],
         widget: {
-          source: "QReview",
+          source: "DemoQR",
           businessId,
           limit,
         },

@@ -10,9 +10,9 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "QReview | AI-Powered QR Review Management & Sentiment Analysis",
+  title: "DemoQR | AI-Powered QR Review Management & Sentiment Analysis",
   description:
-    "Boost your reputation with QReview. Use AI-powered QR codes to collect reviews, automate smart replies, and analyze customer sentiment in real-time. Start for free!",
+    "Boost your reputation with DemoQR. Use AI-powered QR codes to collect reviews, automate smart replies, and analyze customer sentiment in real-time. Start for free!",
   icons: {
     icon: "/icon.ico", // or .png, .svg, etc.
   },
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "QReview",
+  name: "DemoQR",
   operatingSystem: "Web",
   applicationCategory: "BusinessApplication",
   aggregateRating: {

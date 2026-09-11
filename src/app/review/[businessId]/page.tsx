@@ -779,7 +779,7 @@ export default function ReviewPage({
         )}
 
         <p className="mt-8 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-          Powered by <span className="text-blue-600">QReview</span>
+          Powered by <span className="text-blue-600">DemoQR</span>
         </p>
       </div>
     </main>

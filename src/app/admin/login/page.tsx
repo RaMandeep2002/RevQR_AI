@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
             <QrCode className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-950">QReview</p>
+            <p className="text-xl font-bold text-slate-950">DemoQR</p>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Admin console</p>
           </div>
         </div>

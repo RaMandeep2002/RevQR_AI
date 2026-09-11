@@ -238,7 +238,7 @@ export default function Features() {
             Ready to transform your review management?
           </h3>
           <p className="mt-2 text-muted-foreground">
-            Join thousands of businesses already using QReview
+            Join thousands of businesses already using DemoQR
           </p>
           <Link
             href="/auth"

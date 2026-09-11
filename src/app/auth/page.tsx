@@ -348,7 +348,7 @@ export default function AuthPage() {
                 <QrCode className="h-5 w-5" />
               </div>
               <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400 group-hover:to-zinc-400 transition-colors">
-                QReview
+                DemoQR
               </span>
             </div>
           </div>
@@ -525,7 +525,7 @@ export default function AuthPage() {
             </p>
 
             <p className="mt-12 text-center text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-600 transition-colors duration-300">
-              © 2026 <span className="text-brand-600 dark:text-brand-400">QReview</span> System
+              © 2026 <span className="text-brand-600 dark:text-brand-400">DemoQR</span> System
             </p>
           </form>
         </div>

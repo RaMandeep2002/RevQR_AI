@@ -57,7 +57,7 @@ const plans = [
       "100 AI-generated replies / month",
       "500 Email & 100 SMS requests / month",
       "90-day Detailed Analytics & Conversions",
-      "White-labeled (no QReview branding)",
+      "White-labeled (no DemoQR branding)",
       "CRM & Google Business Integrations",
       "Priority Support (24-hour SLA)",
     ],

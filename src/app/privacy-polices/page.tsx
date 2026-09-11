@@ -80,7 +80,7 @@ export default function PrivacyPolicesPage() {
           </div>
 
           <p>
-            Welcome to QReview AI (&quot;QReview AI&quot;, &quot;we&quot;,
+            Welcome to DemoQR AI (&quot;DemoQR AI&quot;, &quot;we&quot;,
             &quot;our&quot;, or &quot;us&quot;). Your privacy is important to
             us. This Privacy Policy explains how we collect, use, store,
             process, disclose, and protect your personal data when you use our
@@ -127,10 +127,10 @@ export default function PrivacyPolicesPage() {
             1. Who We Are
           </h3>
           <p>
-            QReview AI is a software platform that helps businesses collect
+            DemoQR AI is a software platform that helps businesses collect
             customer feedback, generate AI-assisted review drafts based on
             users&apos; own input, manage customer feedback, and improve
-            customer experience. QReview AI does not publish reviews on behalf
+            customer experience. DemoQR AI does not publish reviews on behalf
             of users. Users remain in full control of whether they choose to
             submit any review to third-party platforms such as Google.
           </p>
@@ -194,7 +194,7 @@ export default function PrivacyPolicesPage() {
             4. AI-Assisted Review Drafts
           </h3>
           <p>
-            QReview AI uses artificial intelligence solely to improve the
+            DemoQR AI uses artificial intelligence solely to improve the
             readability, grammar, organization, and clarity of text submitted by
             users. Our AI reorganizes the user&apos;s own words; does not
             intentionally invent facts, opinions, or experiences; does not
@@ -205,7 +205,7 @@ export default function PrivacyPolicesPage() {
           <h3 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-slate-800">
             5. How Reviews Are Submitted
           </h3>
-          <p>QReview AI does not post reviews on behalf of users. Instead:</p>
+          <p>DemoQR AI does not post reviews on behalf of users. Instead:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Users write their own feedback.</li>
             <li>AI prepares an editable draft.</li>
@@ -272,17 +272,17 @@ export default function PrivacyPolicesPage() {
             <p>
               <strong className="text-slate-900 dark:text-white">Email:</strong>{" "}
               <a
-                href="mailto:privacy@qreview.ai"
+                href="mailto:privacy@DemoQR.ai"
                 className="text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                privacy@qreview.ai
+                privacy@DemoQR.ai
               </a>
             </p>
             <p>
               <strong className="text-slate-900 dark:text-white">
                 Address:
               </strong>{" "}
-              QReview AI Headquarters, India
+              DemoQR AI Headquarters, India
             </p>
           </div>
         </div>
@@ -300,13 +300,13 @@ export default function PrivacyPolicesPage() {
           <div className="rounded-xl bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 border border-blue-100/50 dark:border-blue-800/50">
             <p className="font-medium text-slate-800 dark:text-slate-200">
               <FileText className="inline h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
-              By using QReview AI, you agree to these Terms of Use. Please read
+              By using DemoQR AI, you agree to these Terms of Use. Please read
               them carefully.
             </p>
           </div>
 
           <p>
-            Welcome to QReview AI. These Terms of Use (&quot;Terms&quot;) govern
+            Welcome to DemoQR AI. These Terms of Use (&quot;Terms&quot;) govern
             your access to and use of our website, merchant dashboard, QR-based
             customer feedback platform, AI-assisted review drafting service,
             mobile web application, and all related products and services
@@ -326,7 +326,7 @@ export default function PrivacyPolicesPage() {
             2. Customer Review Process &amp; Equal Opportunity
           </h3>
           <p>
-            QReview AI is a technology platform only. We do not own, control,
+            DemoQR AI is a technology platform only. We do not own, control,
             verify, edit, endorse, or publish customer reviews. Every customer
             is presented with the same opportunity to submit a public review,
             regardless of the rating or sentiment expressed. Providing private
@@ -349,7 +349,7 @@ export default function PrivacyPolicesPage() {
             4. Annual Subscription &amp; Billing
           </h3>
           <p>
-            QReview AI is offered on an annual prepaid subscription basis.
+            DemoQR AI is offered on an annual prepaid subscription basis.
             Subscription fees are payable in advance and may renew
             automatically. Applicable taxes, including GST where required, will
             be charged separately.
@@ -361,7 +361,7 @@ export default function PrivacyPolicesPage() {
           <div className="rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/50 p-4">
             <p className="text-xs text-amber-700 dark:text-amber-300">
               <strong>Strengthened Liability Cap:</strong> To the maximum extent
-              permitted by applicable law, the aggregate liability of QReview AI
+              permitted by applicable law, the aggregate liability of DemoQR AI
               arising out of or relating to the Services shall not exceed the
               greater of (a) the total subscription fees actually paid by the
               customer during the twelve (12) months immediately preceding the
@@ -400,7 +400,7 @@ export default function PrivacyPolicesPage() {
 
           <p>
             This Refund &amp; Cancellation Policy (&quot;Policy&quot;) applies
-            to all subscriptions and services offered by QReview AI. By
+            to all subscriptions and services offered by DemoQR AI. By
             purchasing a subscription, you agree to this Policy.
           </p>
 
@@ -408,7 +408,7 @@ export default function PrivacyPolicesPage() {
             1. Subscription Model &amp; Activation
           </h3>
           <p>
-            QReview AI is offered on an annual prepaid subscription basis. All
+            DemoQR AI is offered on an annual prepaid subscription basis. All
             subscriptions are billed for a period of twelve (12) months in
             advance and become active once payment is processed and dashboard
             access is provided.
@@ -470,7 +470,7 @@ export default function PrivacyPolicesPage() {
           </div>
 
           <p>
-            This Cookie Policy explains how QReview AI uses cookies and similar
+            This Cookie Policy explains how DemoQR AI uses cookies and similar
             technologies when you visit our website, merchant dashboard, or use
             our Services. This policy should be read together with our Privacy
             Policy.
@@ -517,7 +517,7 @@ export default function PrivacyPolicesPage() {
             3. Cookies We Do Not Use
           </h3>
           <p>
-            QReview AI does not use cookies to sell personal data or target you
+            DemoQR AI does not use cookies to sell personal data or target you
             with external third-party advertisements.
           </p>
         </div>
@@ -541,7 +541,7 @@ export default function PrivacyPolicesPage() {
 
           <p>
             This Acceptable Use Policy (&quot;Policy&quot;) forms part of the
-            QReview AI Terms of Use. It defines the standards for honest and
+            DemoQR AI Terms of Use. It defines the standards for honest and
             lawful platform utilization.
           </p>
 
@@ -549,7 +549,7 @@ export default function PrivacyPolicesPage() {
             1. Prohibited Review Practices
           </h3>
           <p>
-            To preserve review integrity, merchants using QReview AI must not:
+            To preserve review integrity, merchants using DemoQR AI must not:
           </p>
           <ul className="list-disc pl-5 space-y-1">
             <li>
@@ -574,7 +574,7 @@ export default function PrivacyPolicesPage() {
           <p>
             Users are prohibited from attempting to bypass authentication,
             scanning for vulnerabilities, overloading servers, scraping platform
-            data, or distributing malware through the QReview AI environment.
+            data, or distributing malware through the DemoQR AI environment.
           </p>
         </div>
       ),
@@ -596,7 +596,7 @@ export default function PrivacyPolicesPage() {
           </div>
 
           <p>
-            At QReview AI, we believe artificial intelligence should assist
+            At DemoQR AI, we believe artificial intelligence should assist
             people—not replace them. This AI Transparency &amp; Responsible AI
             Policy explains our guidelines.
           </p>
@@ -616,7 +616,7 @@ export default function PrivacyPolicesPage() {
           <p>
             The user is presented with a draft review based on their own words.
             The user must review, verify, and approve this draft. The user must
-            copy and publish it themselves; QReview AI has no automated
+            copy and publish it themselves; DemoQR AI has no automated
             interaction with review platforms like Google.
           </p>
         </div>
@@ -640,7 +640,7 @@ export default function PrivacyPolicesPage() {
           </div>
 
           <p>
-            This Policy explains how QReview AI retains and deletes personal
+            This Policy explains how DemoQR AI retains and deletes personal
             information processed through our Services.
           </p>
 
@@ -704,7 +704,7 @@ export default function PrivacyPolicesPage() {
             Merchants and customers can request data purge or deletion at any
             time by contacting our support team at{" "}
             <strong className="text-slate-900 dark:text-white">
-              privacy@qreview.ai
+              privacy@DemoQR.ai
             </strong>
             . We execute these requests within the legally mandated timelines.
           </p>
@@ -758,7 +758,7 @@ export default function PrivacyPolicesPage() {
                 <QrCode className="h-5 w-5" />
               </div>
               <span className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 group-hover:to-zinc-400 transition-colors">
-                QReview
+                DemoQR
               </span>
             </div>
           </Link>
@@ -940,11 +940,11 @@ export default function PrivacyPolicesPage() {
                 </h4>
                 <div className="space-y-2">
                   <a
-                    href="mailto:support@qreview.ai"
+                    href="mailto:support@DemoQR.ai"
                     className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                   >
                     <Mail className="h-3.5 w-3.5" />
-                    <span className="truncate">support@qreview.ai</span>
+                    <span className="truncate">support@DemoQR.ai</span>
                   </a>
                   <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                     <MapPin className="h-3.5 w-3.5" />
