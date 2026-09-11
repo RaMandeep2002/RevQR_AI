@@ -1,8 +1,13 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { featureResponse, getSubscriptionAccess } from "@/lib/subscription-access";
 
 export async function GET(request: Request) {
+    const { access, response } = await getSubscriptionAccess();
+    if (response) return response;
+    const restricted = featureResponse(access, "analytics");
+    if (restricted) return restricted;
     const supabase = await createClient();
     const {
         data: { user }

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { enforceWordLimit, sanitizeReviewText } from "@/lib/utils";
 import { GoogleGenAI } from "@google/genai";
+import { featureResponse, getSubscriptionAccess } from "@/lib/subscription-access";
 
 export async function POST(request: Request) {
     try {
+        const { access, response: accessResponse } = await getSubscriptionAccess();
+        if (accessResponse) return accessResponse;
+        const restricted = featureResponse(access, "analytics");
+        if (restricted) return restricted;
         const { businessName, category } = await request.json();
 
         // console.log(request.json());

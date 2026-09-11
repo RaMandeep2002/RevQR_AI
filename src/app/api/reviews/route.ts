@@ -20,7 +20,7 @@ export async function GET() {
     .in("business_id", businessIds)
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-   console.log(data);
+  //  console.log(data);
   return NextResponse.json({ data });
 }
 
@@ -35,7 +35,6 @@ export async function POST(request: Request) {
 
   if (!businessId || ![1, 2, 3, 4, 5].includes(stars)) return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   if (!customerName) return NextResponse.json({ error: "Customer name is required." }, { status: 400 });
-  if (!customerEmail || !validEmail(customerEmail)) return NextResponse.json({ error: "Valid customer email is required." }, { status: 400 });
   if (!reviewText) return NextResponse.json({ error: "Review cannot be empty." }, { status: 400 });
   if (wordCount(reviewText) > 150) return NextResponse.json({ error: "Review must be 150 words or less." }, { status: 400 });
 

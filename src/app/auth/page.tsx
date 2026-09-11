@@ -22,6 +22,7 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("");
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [isSessionValid, setIsSessionValid] = useState<boolean | null>(null);
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
@@ -36,6 +37,132 @@ export default function AuthPage() {
       document.documentElement.classList.add("dark");
     }
   }, []);
+
+  // Check session on mount and set up auto-refresh
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Session check error:", error);
+        setIsSessionValid(false);
+        return;
+      }
+
+      if (session) {
+        // Check if token is expired or about to expire (within 5 minutes)
+        const expiresAt = new Date(session.expires_at! * 1000);
+        const now = new Date();
+        const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        if (timeUntilExpiry > 0) {
+          setIsSessionValid(true);
+          
+          // If token expires in less than 5 minutes, refresh it
+          if (timeUntilExpiry < fiveMinutes) {
+            await refreshSession();
+          }
+          
+          // Redirect to dashboard if session is valid
+          router.push("/onboarding");
+          return;
+        } else {
+          // Session expired, clear it
+          await supabase.auth.signOut();
+          setIsSessionValid(false);
+        }
+      } else {
+        setIsSessionValid(false);
+      }
+    };
+
+    checkSession();
+
+    // Set up session refresh interval (every 15 minutes)
+    const refreshInterval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await refreshSession();
+      }
+    }, 15 * 60 * 1000);
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setIsSessionValid(true);
+          router.push("/onboarding");
+        } else if (event === 'SIGNED_OUT') {
+          setIsSessionValid(false);
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Token was automatically refreshed
+          console.log('Token refreshed successfully');
+        }
+      }
+    );
+
+    return () => {
+      clearInterval(refreshInterval);
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth, router]);
+
+  // Refresh session function
+  const refreshSession = async () => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error("Session refresh error:", error);
+        // If refresh fails, sign out
+        await supabase.auth.signOut();
+        setIsSessionValid(false);
+        return false;
+      }
+      if (data.session) {
+        console.log("Session refreshed successfully");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Session refresh error:", error);
+      return false;
+    }
+  };
+
+  // Auto-login with stored credentials
+  const attemptAutoLogin = async () => {
+    try {
+      const storedEmail = localStorage.getItem("user_email");
+      const storedPassword = localStorage.getItem("user_password");
+      
+      if (storedEmail && storedPassword) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: storedEmail,
+          password: storedPassword,
+        });
+        
+        if (!error && data.session) {
+          // Set a reminder to refresh token (1 day before expiry)
+          const expiresAt = new Date(data.session.expires_at! * 1000);
+          const refreshTime = new Date(expiresAt.getTime() - 24 * 60 * 60 * 1000);
+          
+          const timeUntilRefresh = refreshTime.getTime() - Date.now();
+          if (timeUntilRefresh > 0) {
+            setTimeout(async () => {
+              await refreshSession();
+            }, timeUntilRefresh);
+          }
+          
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error("Auto-login error:", error);
+      return false;
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -59,22 +186,59 @@ export default function AuthPage() {
     }
 
     if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       setLoading(false);
-      if (error) return setError(error.message);
+      
+      if (error) {
+        return setError(error.message);
+      }
+
+      // Store credentials for auto-login (encrypted in production)
+      if (data.session) {
+        localStorage.setItem("user_email", email);
+        localStorage.setItem("user_password", password);
+        
+        // Store session expiry info
+        const expiresAt = new Date(data.session.expires_at! * 1000);
+        localStorage.setItem("session_expires_at", expiresAt.toISOString());
+        
+        // Set a timer to refresh token 1 day before expiry
+        const refreshTime = new Date(expiresAt.getTime() - 24 * 60 * 60 * 1000);
+        const timeUntilRefresh = refreshTime.getTime() - Date.now();
+        
+        if (timeUntilRefresh > 0) {
+          setTimeout(async () => {
+            await refreshSession();
+          }, timeUntilRefresh);
+        }
+      }
+      
       router.push("/onboarding");
       router.refresh();
     } else {
-      const { error, data } = await supabase.auth.signUp({ email, password });
+      const { error, data } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
       setLoading(false);
-      if (error) return setError(error.message);
+      
+      if (error) {
+        return setError(error.message);
+      }
 
       if (data?.user?.identities?.length === 0) {
         setError("This email is already registered. Please sign in instead.");
       } else {
+        // Store credentials for auto-login after registration
+        localStorage.setItem("user_email", email);
+        localStorage.setItem("user_password", password);
+        
         setSuccess("Successfully registered! Redirecting to setup...");
         setTimeout(() => {
           router.push("/onboarding");
@@ -100,6 +264,40 @@ export default function AuthPage() {
     setPassword("");
     setValidation(null);
   };
+
+  // Handle logout with cleanup
+  const handleLogout = async () => {
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_password");
+    localStorage.removeItem("session_expires_at");
+    await supabase.auth.signOut();
+    setIsSessionValid(false);
+    router.push("/auth");
+  };
+
+  // If still checking session, show loading state
+  if (isSessionValid === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-950">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
+          <p className="mt-4 text-slate-500 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If session is valid and user is already logged in, redirect to dashboard
+  if (isSessionValid) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-950">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
+          <p className="mt-4 text-slate-500 dark:text-slate-400">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">

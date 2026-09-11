@@ -74,4 +74,14 @@ Open [http://localhost:3000](http://localhost:3000)
 - Loading states, error handling, and secure env usage
 - Supabase Auth sign in/sign up and dashboard protection
 
+### Admin access
+
+The platform admin console is separate from the customer dashboard:
+
+- Admin sign in: `/admin/login`
+- Admin console: `/admin`
+- Configure one or more Supabase Auth emails in `ADMIN_EMAILS` (comma-separated) in `.env.local`.
+
+The admin allowlist is checked on the server. The admin dashboard uses the Supabase service-role client only in server components, so the service-role key must never be prefixed with `NEXT_PUBLIC_`.
+
 # RevQR_AI

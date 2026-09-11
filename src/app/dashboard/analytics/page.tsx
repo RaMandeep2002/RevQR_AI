@@ -1,4 +1,3 @@
-// app/dashboard/analytics/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,10 +16,6 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import type {
-  ValueType,
-  NameType,
-} from "recharts/types/component/DefaultTooltipContent";
 import {
   Download,
   TrendingUp,
@@ -32,7 +27,10 @@ import {
   ArrowDown,
   Loader2,
   Mail,
+  RefreshCw,
+  Building2,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +57,12 @@ interface Review {
   };
 }
 
+interface Business {
+  id: string;
+  name: string;
+  user_id?: string;
+}
+
 interface ReviewStats {
   business_id: string;
   business_name: string;
@@ -76,6 +80,7 @@ interface AnalyticsData {
   ratingByForm: RatingByFormData[];
   reviewBreakdown: ReviewBreakdownData[];
   allReviews: Review[];
+  ratingDistribution: RatingDistribution[];
 }
 
 interface RatingData {
@@ -100,6 +105,12 @@ interface ReviewBreakdownData {
   answers: { label: string; count: number }[];
 }
 
+interface RatingDistribution {
+  stars: number;
+  count: number;
+  percentage: number;
+}
+
 const COLORS = ["#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#3B82F6"];
 
 export default function AnalyticsPage() {
@@ -113,25 +124,76 @@ export default function AnalyticsPage() {
     ratingByForm: [],
     reviewBreakdown: [],
     allReviews: [],
+    ratingDistribution: [],
   });
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState<string>("all");
   const [timeRange, setTimeRange] = useState("7d");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [timeRange]);
-
-  const fetchAnalyticsData = async () => {
+  // Fetch businesses and analytics data
+  const fetchData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Fetch businesses from API
+      const businessRes = await fetch("/api/businesses");
+      const businessJson = await businessRes.json();
+      
+      const nextBusinesses = businessJson.data || [];
+      setBusinesses(nextBusinesses);
+
+      // If businesses exist, set selected business
+      if (nextBusinesses.length > 0) {
+        // Check URL params for businessId
+        const params = new URLSearchParams(window.location.search);
+        const requestedBusinessId = params.get("businessId");
+        
+        if (requestedBusinessId) {
+          const requestedBusiness = nextBusinesses.find(
+            (business: Business) => business.id === requestedBusinessId
+          );
+          setSelectedBusiness(requestedBusiness?.id || nextBusinesses[0].id);
+        } else {
+          setSelectedBusiness(nextBusinesses[0].id);
+        }
+      } else {
+        setSelectedBusiness("all");
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch analytics data for the selected business
+      await fetchAnalyticsData(nextBusinesses);
+      
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("Failed to load data. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAnalyticsData = async (businessList?: Business[]) => {
+    try {
+      const currentBusinesses = businessList || businesses;
+      
+      // Build query params
+      const params = new URLSearchParams();
+      if (selectedBusiness !== "all") {
+        params.append("businessId", selectedBusiness);
+      }
+      if (timeRange) {
+        params.append("timeRange", timeRange);
+      }
+
       const [reviewsResponse, statsResponse] = await Promise.all([
-        fetch("/api/reviews"),
-        fetch("/api/reviews?stats=true"),
+        fetch(`/api/reviews?${params.toString()}`),
+        fetch(`/api/reviews/stats?${params.toString()}`),
       ]);
+
 
       if (!reviewsResponse.ok || !statsResponse.ok) {
         throw new Error("Failed to fetch analytics data");
@@ -140,18 +202,34 @@ export default function AnalyticsPage() {
       const reviewsData = await reviewsResponse.json();
       const statsData = await statsResponse.json();
 
+
+      console.log("reviewsData -----> ", reviewsData)
+      console.log("statsData -----> ", statsData)
+
       const reviews: Review[] = reviewsData.data || [];
       const stats: ReviewStats[] = statsData.data || [];
 
       const processedData = processAnalyticsData(reviews, stats);
       setData(processedData);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching analytics:", error);
       setError("Failed to load analytics data. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Refetch when business or time range changes
+  useEffect(() => {
+    if (businesses.length > 0) {
+      fetchAnalyticsData();
+    }
+  }, [selectedBusiness, timeRange]);
 
   const processAnalyticsData = (
     reviews: Review[],
@@ -163,6 +241,17 @@ export default function AnalyticsPage() {
     const positiveReviews = reviews.filter((r) => r.stars >= 4).length;
     const negativeReviews = reviews.filter((r) => r.stars <= 2).length;
 
+    // Rating distribution
+    const distribution = [1, 2, 3, 4, 5].map((stars) => {
+      const count = reviews.filter((r) => r.stars === stars).length;
+      return {
+        stars,
+        count,
+        percentage: totalResponses > 0 ? (count / totalResponses) * 100 : 0,
+      };
+    });
+
+    // Date maps for ratings over time
     const dateMap = new Map<string, { total: number; count: number }>();
     reviews.forEach((review) => {
       const date = new Date(review.created_at).toISOString().split("T")[0];
@@ -181,6 +270,7 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
+    // Response volume
     const volumeMap = new Map<string, number>();
     reviews.forEach((review) => {
       const date = new Date(review.created_at).toISOString().split("T")[0];
@@ -191,6 +281,7 @@ export default function AnalyticsPage() {
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
+    // Rating by form/business
     const formMap = new Map<
       string,
       { name: string; total: number; count: number }
@@ -218,7 +309,45 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => b.count - a.count);
 
-    const reviewBreakdown: ReviewBreakdownData[] = [];
+    // Simple review breakdown from review text
+    const breakdownMap = new Map<string, Map<string, number>>();
+    const keywords = {
+      "Service Quality": ["excellent", "great", "good", "amazing", "wonderful"],
+      "Product Quality": ["quality", "durable", "well-made", "premium"],
+      "Customer Support": ["support", "helpful", "responsive", "friendly"],
+      "Value for Money": ["worth", "price", "value", "affordable"],
+      "Delivery": ["fast", "quick", "shipping", "delivery"],
+      "Cleanliness": ["clean", "tidy", "organized", "neat"],
+      "Professionalism": ["professional", "knowledgeable", "expert"],
+    };
+
+    reviews.forEach((review) => {
+      const text = review.review_text.toLowerCase();
+      Object.entries(keywords).forEach(([category, words]) => {
+        words.forEach((word) => {
+          if (text.includes(word)) {
+            if (!breakdownMap.has(category)) {
+              breakdownMap.set(category, new Map());
+            }
+            const answers = breakdownMap.get(category)!;
+            answers.set(word, (answers.get(word) || 0) + 1);
+          }
+        });
+      });
+    });
+
+    const reviewBreakdown: ReviewBreakdownData[] = Array.from(
+      breakdownMap.entries(),
+    )
+      .map(([question, answers]) => ({
+        question,
+        answers: Array.from(answers.entries())
+          .map(([label, count]) => ({ label, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3),
+      }))
+      .filter((item) => item.answers.length > 0)
+      .slice(0, 3);
 
     return {
       totalResponses,
@@ -230,12 +359,13 @@ export default function AnalyticsPage() {
       ratingByForm,
       reviewBreakdown,
       allReviews: reviews,
+      ratingDistribution: distribution,
     };
   };
 
   const handleExportCSV = () => {
     if (data.allReviews.length === 0) {
-      alert("No reviews to export.");
+      toast.error("No reviews to export.");
       return;
     }
 
@@ -302,11 +432,13 @@ export default function AnalyticsPage() {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+    
+    toast.success("CSV exported successfully!");
   };
 
   const handleEmailCSV = async () => {
     if (data.allReviews.length === 0) {
-      alert("No reviews to email.");
+      toast.error("No reviews to email.");
       return;
     }
 
@@ -319,7 +451,7 @@ export default function AnalyticsPage() {
       } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
-        alert("Could not retrieve your email. Please try logging in again.");
+        toast.error("Could not retrieve your email. Please try logging in again.");
         setIsSendingEmail(false);
         return;
       }
@@ -397,7 +529,7 @@ export default function AnalyticsPage() {
       toast.success(`Report successfully emailed to ${user.email}!`);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Failed to send report via email.");
+      toast.error(err.message || "Failed to send report via email.");
     } finally {
       setIsSendingEmail(false);
     }
@@ -463,6 +595,7 @@ export default function AnalyticsPage() {
     </Card>
   );
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -471,6 +604,31 @@ export default function AnalyticsPage() {
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
             Loading analytics data...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // No businesses found
+  if (businesses.length === 0 && !isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-200px)] items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+            <Building2 className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            No Businesses Found
+          </h3>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            You don't have any businesses registered yet. Create your first business to start collecting reviews.
+          </p>
+          <Button
+            onClick={() => window.location.href = "/dashboard/businesses/new"}
+            className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+          >
+            Create Business
+          </Button>
         </div>
       </div>
     );
@@ -490,7 +648,7 @@ export default function AnalyticsPage() {
             {error}
           </p>
           <Button
-            onClick={fetchAnalyticsData}
+            onClick={fetchData}
             className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
           >
             Try Again
@@ -511,7 +669,9 @@ export default function AnalyticsPage() {
             No Reviews Yet
           </h3>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Start collecting reviews from your customers to see analytics here.
+            {selectedBusiness === "all" 
+              ? "Start collecting reviews from your customers to see analytics here."
+              : `No reviews found for ${businesses.find(b => b.id === selectedBusiness)?.name || "this business"}.`}
           </p>
         </div>
       </div>
@@ -530,7 +690,25 @@ export default function AnalyticsPage() {
             Insights from your customer feedback
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Business Selector */}
+          <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
+            <SelectTrigger className="w-48 border-slate-200 bg-white/50 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/50">
+              <SelectValue placeholder="Select Business" />
+            </SelectTrigger>
+            <SelectContent>
+              {businesses.length > 1 && (
+                <SelectItem value="all">All Businesses</SelectItem>
+              )}
+              {businesses.map((business) => (
+                <SelectItem key={business.id} value={business.id}>
+                  {business.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Time Range Selector */}
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-36 border-slate-200 bg-white/50 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/50">
               <SelectValue placeholder="Select range" />
@@ -542,6 +720,7 @@ export default function AnalyticsPage() {
               <SelectItem value="12m">Last 12 months</SelectItem>
             </SelectContent>
           </Select>
+
           <Button
             onClick={handleExportCSV}
             className="border border-slate-200 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
@@ -638,7 +817,7 @@ export default function AnalyticsPage() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(255,255,255,0.9)",
+                      backgroundColor: "var(--tooltip-bg)",
                       borderRadius: "8px",
                       border: "none",
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
@@ -691,7 +870,7 @@ export default function AnalyticsPage() {
                   <YAxis stroke="#94a3b8" fontSize={12} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(255,255,255,0.9)",
+                      backgroundColor: "var(--tooltip-bg)",
                       borderRadius: "8px",
                       border: "none",
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
@@ -746,7 +925,7 @@ export default function AnalyticsPage() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(255,255,255,0.9)",
+                      backgroundColor: "var(--tooltip-bg)",
                       borderRadius: "8px",
                       border: "none",
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
@@ -785,56 +964,46 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        {/* Review Breakdown */}
+        {/* Rating Distribution */}
         <Card className="border-0 bg-white/80 p-6 backdrop-blur-sm dark:bg-slate-800/80">
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Review Breakdown
+            Rating Distribution
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Most common responses from choice questions
+            Number of reviews by star rating
           </p>
-          <div className="mt-4 flex h-64 items-center justify-center">
-            {data.reviewBreakdown.length > 0 ? (
-              <div className="w-full space-y-4">
-                {data.reviewBreakdown.map((item, index) => (
-                  <div key={index}>
-                    <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {item.question}
-                    </p>
-                    <div className="space-y-2">
-                      {item.answers.map((answer, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <span className="text-sm text-slate-600 dark:text-slate-400 min-w-[100px]">
-                            {answer.label}
-                          </span>
-                          <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                              style={{
-                                width: `${(answer.count / item.answers.reduce((sum, a) => sum + a.count, 0)) * 100}%`,
-                              }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-slate-900 dark:text-white min-w-[30px]">
-                            {answer.count}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                  <Filter className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+          <div className="mt-4 space-y-3">
+            {data.ratingDistribution.map((item) => (
+              <div key={item.stars} className="flex items-center gap-3">
+                <div className="flex w-12 items-center gap-1">
+                  <span className="text-sm font-medium text-slate-400 dark:text-slate-500">
+                    {item.stars}
+                  </span>
+                  <Star className="h-3 w-3 fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700" />
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No choice answers yet
-                </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  Responses will appear here once collected
-                </p>
+                <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.percentage}%` }}
+                    transition={{ duration: 1, delay: item.stars * 0.1 }}
+                  />
+                </div>
+                <div className="w-12 text-right">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {item.count}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {data.ratingDistribution.length > 0 && (
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Total Reviews
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {data.totalResponses}
+                </span>
               </div>
             )}
           </div>

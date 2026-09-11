@@ -12,6 +12,9 @@ import {
   MapPin,
   QrCode,
   Sparkles,
+  Languages,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui/input";
@@ -29,6 +32,33 @@ const defaultForm = {
 
 type SetupStage = "idle" | "creating" | "generating" | "ready";
 
+// Indian languages with their native names
+const INDIAN_LANGUAGES = [
+  { code: "en", name: "English", nativeName: "English" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
+  { code: "bn", name: "Bengali", nativeName: "বাংলা" },
+  { code: "te", name: "Telugu", nativeName: "తెలుగు" },
+  { code: "mr", name: "Marathi", nativeName: "मराठी" },
+  { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
+  { code: "ur", name: "Urdu", nativeName: "اردو" },
+  { code: "gu", name: "Gujarati", nativeName: "ગુજરાતી" },
+  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
+  { code: "ml", name: "Malayalam", nativeName: "മലയാളം" },
+  { code: "or", name: "Odia", nativeName: "ଓଡ଼ିଆ" },
+  { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
+  { code: "as", name: "Assamese", nativeName: "অসমীয়া" },
+  { code: "mai", name: "Maithili", nativeName: "मैथिली" },
+  { code: "sat", name: "Santali", nativeName: "ᱥᱟᱱᱛᱟᱲᱤ" },
+  { code: "ks", name: "Kashmiri", nativeName: "कॉशुर" },
+  { code: "ne", name: "Nepali", nativeName: "नेपाली" },
+  { code: "sd", name: "Sindhi", nativeName: "سنڌي" },
+  { code: "kok", name: "Konkani", nativeName: "कोंकणी" },
+  { code: "doi", name: "Dogri", nativeName: "डोगरी" },
+  { code: "mni", name: "Manipuri", nativeName: "মৈতৈলোন্" },
+  { code: "bodo", name: "Bodo", nativeName: "बर' " },
+  { code: "sa", name: "Sanskrit", nativeName: "संस्कृतम्" },
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [form, setForm] = useState(defaultForm);
@@ -37,6 +67,8 @@ export default function OnboardingPage() {
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [createdBusiness, setCreatedBusiness] = useState<Business | null>(null);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en", "hi"]);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
 
   const [hasSeenTour, setHasSeenTour] = useState(false);
   const { startNextStep } = useNextStep();
@@ -44,7 +76,6 @@ export default function OnboardingPage() {
   useEffect(() => {
     const tourSeen = localStorage.getItem("qreview_onbaoding_tour_seen");
     if (!tourSeen) {
-      // Start tour after data loads
       const timer = setTimeout(() => {
         startNextStep("onboardingTour");
       }, 1500);
@@ -89,6 +120,23 @@ export default function OnboardingPage() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const toggleLanguage = (languageCode: string) => {
+    setSelectedLanguages((prev) => {
+      if (prev.includes(languageCode)) {
+        // Don't remove if it's the last selected language
+        if (prev.length === 1) return prev;
+        return prev.filter((code) => code !== languageCode);
+      } else {
+        return [...prev, languageCode];
+      }
+    });
+  };
+
+  const removeLanguage = (languageCode: string) => {
+    if (selectedLanguages.length === 1) return;
+    setSelectedLanguages((prev) => prev.filter((code) => code !== languageCode));
+  };
+
   const generateQrPoster = async (business: Business) => {
     const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
     const reviewUrl = `${base}/review/${business.id}?salt=v1`;
@@ -110,10 +158,16 @@ export default function OnboardingPage() {
     setQrDataUrl("");
     setStage("creating");
 
+    // Save selected languages along with business data
+    const businessData = {
+      ...form,
+      languages: selectedLanguages,
+    };
+
     const response = await fetch("/api/businesses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(businessData),
     });
     const json = await response.json();
 
@@ -224,6 +278,82 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
+              {/* Language Selection Section */}
+              <div id="tour-language-selector" className="mb-6">
+                <label className="grid gap-2">
+                  <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
+                    <Languages className="h-4 w-4" />
+                    Select languages for your review page
+                  </span>
+                  
+                  {/* Language selection dropdown */}
+                  <div className="relative">
+                    <div 
+                      className="flex min-h-[48px] flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:border-emerald-400 transition-colors"
+                      onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                    >
+                      {selectedLanguages.length > 0 ? (
+                        selectedLanguages.map((code) => {
+                          const lang = INDIAN_LANGUAGES.find((l) => l.code === code);
+                          return lang ? (
+                            <span
+                              key={code}
+                              className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {lang.nativeName}
+                              <X
+                                className="h-3 w-3 cursor-pointer hover:text-emerald-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeLanguage(code);
+                                }}
+                              />
+                            </span>
+                          ) : null;
+                        })
+                      ) : (
+                        <span className="text-sm text-slate-500">
+                          Select languages...
+                        </span>
+                      )}
+                      <ChevronDown className="ml-auto h-4 w-4 text-slate-400" />
+                    </div>
+
+                    {/* Dropdown */}
+                    {isLanguageDropdownOpen && (
+                      <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white p-2 shadow-xl">
+                        {INDIAN_LANGUAGES.map((language) => (
+                          <div
+                            key={language.code}
+                            className={`flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-emerald-50 ${
+                              selectedLanguages.includes(language.code)
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "text-slate-700"
+                            }`}
+                            onClick={() => toggleLanguage(language.code)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{language.nativeName}</span>
+                              <span className="text-xs text-slate-400">
+                                ({language.name})
+                              </span>
+                            </div>
+                            {selectedLanguages.includes(language.code) && (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-slate-400">
+                    Select languages your customers can use to leave reviews
+                  </p>
+                </label>
+              </div>
+
               <form
                 id="tour-business-form"
                 className="grid gap-5"
@@ -237,7 +367,7 @@ export default function OnboardingPage() {
                     value={form.name}
                     onChange={(event) => updateForm("name", event.target.value)}
                     placeholder="QReview Coffee House"
-
+                    required
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -254,7 +384,7 @@ export default function OnboardingPage() {
                         updateForm("email", event.target.value)
                       }
                       placeholder="hello@company.com"
-
+                      required
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
@@ -269,7 +399,7 @@ export default function OnboardingPage() {
                         updateForm("category", event.target.value)
                       }
                       placeholder="Restaurant, Salon, Clinic"
-
+                      required
                       className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                     />
                   </label>
@@ -286,7 +416,7 @@ export default function OnboardingPage() {
                       updateForm("googleBusinessUrl", event.target.value)
                     }
                     placeholder="https://g.page/r/your-business/review"
-
+                    required
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -301,7 +431,7 @@ export default function OnboardingPage() {
                       updateForm("location", event.target.value)
                     }
                     placeholder="New Delhi, India"
-
+                    required
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
                 </label>
@@ -316,7 +446,7 @@ export default function OnboardingPage() {
                   id="tour-submit"
                   type="submit"
                   loading={isBusy}
-                  disabled={isBusy}
+                  disabled={isBusy || selectedLanguages.length === 0}
                   className="h-12 rounded-lg bg-slate-950 text-sm font-black text-white hover:bg-slate-800"
                 >
                   {stage === "generating"
@@ -360,6 +490,10 @@ export default function OnboardingPage() {
                 <div className="mt-6 grid gap-3">
                   {[
                     ["Profile", stage !== "idle"],
+                    [
+                      "Languages selected",
+                      selectedLanguages.length > 0,
+                    ],
                     [
                       "QR generated",
                       stage === "generating" || stage === "ready",
@@ -411,6 +545,21 @@ export default function OnboardingPage() {
                         <MapPin className="h-4 w-4 text-blue-300" />
                         {form.location || "Business location"}
                       </div>
+                      {selectedLanguages.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {selectedLanguages.map((code) => {
+                            const lang = INDIAN_LANGUAGES.find((l) => l.code === code);
+                            return lang ? (
+                              <span
+                                key={code}
+                                className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800"
+                              >
+                                {lang.nativeName}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

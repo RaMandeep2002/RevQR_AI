@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
+import { featureResponse, getSubscriptionAccess } from "@/lib/subscription-access";
 
 export async function POST(req: Request) {
   try {
+    const { access, response } = await getSubscriptionAccess();
+    if (response) return response;
+    const restricted = featureResponse(access, "monthlyReports");
+    if (restricted) return restricted;
     const { email, csvContent, businessName } = await req.json();
 
     if (!email) {

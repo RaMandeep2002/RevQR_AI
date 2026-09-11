@@ -17,8 +17,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <DashboardHeader onOpenSidebar={() => setIsSidebarOpen(true)} />
-        <main className="no-scrollbar flex-1 overflow-y-auto p-8 dark:text-gray-100">
-                <Toaster />
+        <main className="flex-1 overflow-y-auto p-8 dark:text-gray-100">
+          <Toaster />
           {children}
         </main>
       </div>

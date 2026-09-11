@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSubscriptionAccess, limitResponse, parseJson, subscriptionIsActive } from "@/lib/subscription-access";
 
 const DEFAULTS = {
   dark_color: "#111827",
@@ -26,6 +27,29 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Fetch subscription to check limit
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan_name, current_usage, features")
+    .eq("user_id", user.id)
+    .in("status", ["active", "free", "pending"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  let limitExceeded = false;
+  if (subscription && subscriptionIsActive(subscription)) {
+    const features = parseJson<Record<string, unknown>>(subscription.features, {});
+    const scanLimit = Number(features.reviewScanLimit || 0);
+
+    const currentUsage = typeof subscription.current_usage === 'string' ? JSON.parse(subscription.current_usage) : subscription.current_usage;
+    const scansUsed = currentUsage?.scansUsed || 0;
+
+    if (scansUsed >= scanLimit) {
+      limitExceeded = true;
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const businessId = searchParams.get("businessId")?.trim();
   const all = searchParams.get("all") === "true";
@@ -39,7 +63,7 @@ export async function GET(request: Request) {
     if (busErr) return NextResponse.json({ error: busErr.message }, { status: 500 });
     
     if (!businesses || businesses.length === 0) {
-      return NextResponse.json({ data: [] });
+      return NextResponse.json({ data: [], limitExceeded });
     }
     
     const businessIds = businesses.map(b => b.id);
@@ -63,7 +87,10 @@ export async function GET(request: Request) {
       .in("business_id", businessIds);
       
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: data || [] });
+    
+    // Attach limitExceeded to each item or top level
+    const dataWithLimit = (data || []).map(item => ({ ...item, limitExceeded }));
+    return NextResponse.json({ data: dataWithLimit, limitExceeded });
   }
 
   if (!businessId) return NextResponse.json({ error: "businessId is required." }, { status: 400 });
@@ -99,14 +126,17 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ 
-    data: data ?? { 
-      business_id: businessId, 
-      ...DEFAULTS 
-    } 
+    data: {
+      ...(data ?? { business_id: businessId, ...DEFAULTS }),
+      limitExceeded
+    },
+    limitExceeded
   });
 }
 
 export async function PUT(request: Request) {
+  const { access, response } = await getSubscriptionAccess();
+  if (response) return response;
   const supabase = await createClient();
   const {
     data: { user }
@@ -185,6 +215,14 @@ export async function PUT(request: Request) {
   
   if (!business) {
     return NextResponse.json({ error: "Business not found." }, { status: 404 });
+  }
+
+  const { count } = await supabase
+    .from("qr_customizations")
+    .select("business_id", { count: "exact", head: true });
+  const limited = limitResponse(access, "maxStaticQRCodes", count ?? 0);
+  if (limited && !(await supabase.from("qr_customizations").select("business_id").eq("business_id", businessId).maybeSingle()).data) {
+    return limited;
   }
 
   // Upsert customization

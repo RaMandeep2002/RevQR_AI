@@ -6,10 +6,14 @@ export async function GET() {
         const plans = await razorpay.plans.all();
 
         // Filter out the GROWTHENTERPRISE plan
+        const filteredItems = plans.items.filter(
+            (item:any) => item.item.name !== "GROWTHENTERPRISE"
+        );
+
         const filteredPlans = {
             ...plans,
-            items: plans.items.filter(item => item.item.name !== "GROWTHENTERPRISE"),
-            count: plans.items.filter(item => item.item.name !== "GROWTHENTERPRISE").length
+            items: filteredItems,
+            count: filteredItems.length,
         };
 
         return NextResponse.json({

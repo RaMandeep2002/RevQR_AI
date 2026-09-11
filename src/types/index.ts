@@ -8,6 +8,13 @@ export interface User {
   updated_at: string;
 }
 
+export type BusinessTone =
+  | "Professional"
+  | "Friendly"
+  | "Enthusiastic"
+  | "Formal"
+  | "Casual";
+
 export type Business = {
   id: string;
   owner_id: string;
@@ -16,6 +23,9 @@ export type Business = {
   category: string;
   google_business_url: string;
   location: string;
+  languages: string[];
+  keywords: string;
+  tone: BusinessTone;
   created_at: string;
 };
 

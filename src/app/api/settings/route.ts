@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-const LANGUAGES = ["English", "Hindi", "Hinglish", "Punglish"];
+
 const TONES = ["Professional", "Friendly", "Enthusiastic"];
 
 export async function GET() {
@@ -13,7 +13,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("prompt_settings")
-    .select("keywords,language,tone")
+    .select("keywords,tone")
     .eq("owner_id", user.id)
     .maybeSingle();
 
@@ -21,7 +21,6 @@ export async function GET() {
   return NextResponse.json({
     data: data ?? {
       keywords: "",
-      language: "English",
       tone: "Professional",
     }
   });
@@ -36,10 +35,8 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
   const keywords = String(body.keywords ?? "").trim();
-  const language = String(body.language ?? "English").trim();
   const tone = String(body.tone ?? "Professional").trim();
 
-  if (!LANGUAGES.includes(language)) return NextResponse.json({ error: "Invalid language." }, { status: 400 });
   if (!TONES.includes(tone)) return NextResponse.json({ error: "Invalid tone." }, { status: 400 });
 
   const { data, error } = await supabase
@@ -48,7 +45,6 @@ export async function PUT(request: Request) {
       {
         owner_id: user.id,
         keywords,
-        language,
         tone,
         updated_at: new Date().toISOString()
       },

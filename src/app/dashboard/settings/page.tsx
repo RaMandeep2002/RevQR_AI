@@ -1,57 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui";
-import { Input } from "@/components/ui/input";
+// import { useEffect, useState } from "react";
+// import { Button } from "@/components/ui";
+// import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
-const LANGUAGES = ["English", "Hindi", "Hinglish", "Punglish"] as const;
-const TONES = ["Professional", "Friendly", "Enthusiastic"] as const;
+
+// const TONES = ["Professional", "Friendly", "Enthusiastic"] as const;
 
 export default function DashboardSettingsPage() {
-  const [keywords, setKeywords] = useState("");
-  const [language, setLanguage] =
-    useState<(typeof LANGUAGES)[number]>("English");
-  const [tone, setTone] = useState<(typeof TONES)[number]>("Professional");
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  // const [keywords, setKeywords] = useState("");
+  // const [tone, setTone] = useState<(typeof TONES)[number]>("Professional");
+  // const [loading, setLoading] = useState(false);
+  // const [saving, setSaving] = useState(false);
+  // const [message, setMessage] = useState("");
+  // const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
 
-  const fetchSettings = async () => {
-    setLoading(true);
-    const response = await fetch("/api/settings");
-    const json = await response.json();
-    setLoading(false);
-    if (!response.ok) return setError(json.error || "Failed to load settings.");
-    setKeywords(json.data.keywords || "");
-    setLanguage(
-      (json.data.language || "English") as (typeof LANGUAGES)[number],
-    );
-    setTone((json.data.tone || "Professional") as (typeof TONES)[number]);
-  };
+  // const fetchSettings = async () => {
+  //   setLoading(true);
+  //   const response = await fetch("/api/settings");
+  //   const json = await response.json();
+  //   setLoading(false);
+  //   if (!response.ok) return setError(json.error || "Failed to load settings.");
+  //   setKeywords(json.data.keywords || "");
+  //   setTone((json.data.tone || "Professional") as (typeof TONES)[number]);
+  // };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  // useEffect(() => {
+  //   fetchSettings();
+  // }, []);
 
-  const saveSettings = async () => {
-    setError("");
-    setMessage("");
-    setSaving(true);
-    const response = await fetch("/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ keywords, language, tone }),
-    });
-    const json = await response.json();
-    setSaving(false);
-    if (!response.ok) return setError(json.error || "Failed to save settings.");
-    setMessage("Settings saved successfully.");
-  };
+  // const saveSettings = async () => {
+  //   setError("");
+  //   setMessage("");
+  //   setSaving(true);
+  //   const response = await fetch("/api/settings", {
+  //     method: "PUT",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ keywords, tone }),
+  //   });
+  //   const json = await response.json();
+  //   setSaving(false);
+  //   if (!response.ok) return setError(json.error || "Failed to save settings.");
+  //   setMessage("Settings saved successfully.");
+  // };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -59,100 +54,11 @@ export default function DashboardSettingsPage() {
         <h1 className="text-3xl font-black text-slate-900 dark:text-white">
           Settings
         </h1>
-        <p className="mt-1 font-medium text-slate-500 dark:text-slate-400">
+        {/* <p className="mt-1 font-medium text-slate-500 dark:text-slate-400">
           Configure prompt behavior for AI-generated reviews.
-        </p>
+        </p> */}
       </div>
-
-      <Card className="rounded-2xl bg-slate-50 p-5 dark:bg-[#0B1739] border-[#343B4F]/80">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          Keywords
-        </h2>
-        <p className="text-sm text-slate-400 dark:text-slate-500">
-          Add at least 2-3 keywords for better ranking. (Seprated with comma)
-        </p>
-        <Input
-          value={keywords}
-          onChange={(e) => setKeywords(e.target.value)}
-          placeholder="service quality, staff behaviour, pricing"
-          className="mt-3 h-12 rounded-xl border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
-        />
-      </Card>
-
-      <Card className="rounded-2xl bg-slate-50 p-5 dark:bg-[#0B1739] border-[#343B4F]/80">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          Choose Language
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {LANGUAGES.map((item) => (
-            <button
-              key={item}
-              onClick={() => setLanguage(item)}
-              className={`h-10 rounded-xl text-sm font-bold transition ${
-                language === item
-                  ? "bg-blue-500 text-white shadow-md dark:bg-blue-600"
-                  : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="rounded-2xl bg-slate-50 p-5 dark:bg-[#0B1739] border-[#343B4F]/80">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          Default Tone
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {TONES.map((item) => (
-            <button
-              key={item}
-              onClick={() => setTone(item)}
-              className={`h-10 rounded-xl text-sm font-bold transition ${
-                tone === item
-                  ? "bg-blue-500 text-white shadow-md dark:bg-blue-600"
-                  : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      {error ? (
-        <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      ) : null}
-      {message ? (
-        <div className="flex items-center gap-3 rounded-2xl bg-emerald-500 px-5 py-3 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-950/30">
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          <p className="text-sm font-semibold">{message}</p>
-        </div>
-      ) : null}
-
-      <Button
-        onClick={saveSettings}
-        loading={saving || loading}
-        className="h-12 w-full rounded-2xl bg-blue-600 text-base font-bold hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-      >
-        Save
-      </Button>
-
+       
       <Card className="rounded-2xl bg-slate-50 p-5 dark:bg-[#0B1739] border-[#343B4F]/80">
         <div className="flex items-center justify-between">
           <div>

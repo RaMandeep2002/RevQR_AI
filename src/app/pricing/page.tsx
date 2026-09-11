@@ -2,129 +2,128 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { QrCode, ArrowRight, Shield, Zap, Sparkles, Check, Loader2, X, HelpCircle, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { QrCode, ArrowRight, Shield, Zap, Sparkles, Check, Loader2, X, HelpCircle, ChevronDown, ChevronUp, Star, Languages, AlertTriangle, BarChart3, MonitorSmartphone, Users, Building2, Store, Coffee, HeartPulse } from "lucide-react";
 
 const plans = [
   {
     name: "Starter",
-    description: "Perfect for single-location businesses looking to start collecting reviews.",
-    priceMonthly: 0,
-    priceYearly: 0,
+    segment: "Single Kirana / Salon / Clinic",
+    description: "Perfect for small businesses starting their review collection journey.",
+    priceMonthly: 299,
+    priceYearly: 2990, // ~16% off
     features: [
+      "100 Scans / month",
+      "English + 1 Local Language",
+      "Email Alerts (1-3 Star Reviews)",
+      "PDF Printout QR Standee",
+      "Basic Counter Analytics",
       "1 Business Location",
-      "Up to 3 Static QR Codes",
-      "Basic QR Customization (no logos)",
-      "10 AI-generated replies / month",
-      "50 Email review requests / month",
-      "Basic 7-day Analytics overview",
-      "Watermarked QR Codes & Widgets",
-      "Email Support (72-hour SLA)"
+      "Up to 3 Static QR Codes"
     ],
-    cta: "Get Started Free",
+    cta: "Start Free Trial",
     popular: false,
-    badge: "Free Forever"
+    badge: "Best for Startups",
+    icon: Store
   },
   {
     name: "Growth",
-    description: "The sweet spot for active businesses needing review automation and dynamic tools.",
-    priceMonthly: 2999,
-    priceYearly: 29990,
+    segment: "Busy Cafe / Fine Dining",
+    description: "The sweet spot for growing businesses needing deeper insights.",
+    priceMonthly: 699,
+    priceYearly: 6990, // ~16% off
     features: [
+      "350 Scans / month",
+      "Multi-language Auto-Detect",
+      "Email Alerts (1-3 Star Reviews)",
+      "1 High-Quality Acrylic Standee",
+      "Monthly Insights & Sentiment Report",
       "Up to 3 Business Locations",
       "Unlimited Static QR Codes",
-      "Up to 20 Dynamic QR Codes",
-      "Advanced QR Customization (logos & templates)",
-      "100 AI-generated replies / month",
-      "505 Email & 100 SMS requests / month",
-      "90-day Detailed Analytics & Conversions",
-      "White-labeled (no QReview branding)",
-      "CRM & Google Business Integrations",
-      "Priority Support (24-hour SLA)"
+      "Up to 20 Dynamic QR Codes"
     ],
     cta: "Start Pro Trial",
     popular: true,
-    badge: "Most Popular"
+    badge: "Most Popular",
+    icon: Coffee
   },
   {
-    name: "Premium",
-    description: "Designed for multi-location franchises, agencies, and enterprise clients.",
-    priceMonthly: 7999,
-    priceYearly: 79990,
+    name: "Enterprise",
+    segment: "Multi-chain / Hospitals",
+    description: "Designed for large organizations with multiple locations.",
+    priceMonthly: 1499,
+    priceYearly: 14990, // ~16% off
     features: [
+      "1,000 Scans / month",
+      "All Local Languages + Voice-to-Text",
+      "Email Alerts (1-3 Star Reviews)",
+      "3 Acrylic Standees Included",
+      "Real-Time Staff Leaderboard",
       "Unlimited Business Locations",
       "Unlimited Dynamic & Static QR Codes",
-      "Full White-label Scan Landing Pages",
-      "Unlimited AI-generated replies",
-      "Unlimited Email & 1,000 SMS / month",
-      "Custom Report Builder & CSV exports",
-      "REST API access & Webhooks / Zapier",
-      "Role-based Team Management (10 users)",
-      "Dedicated Account Manager",
-      "24/7 Live Chat Support"
+      "REST API Access & Webhooks",
+      "Role-based Team Management"
     ],
     cta: "Contact Sales",
     popular: false,
-    badge: "Enterprise"
+    badge: "Enterprise",
+    icon: Building2
   }
 ];
 
 const faqs = [
   {
+    q: "What happens if I exceed my scan limit?",
+    a: "You'll receive a notification when you're approaching your limit. Additional scans are available as add-ons, or you can upgrade to a higher plan to accommodate your growing needs."
+  },
+  {
     q: "Can I change or cancel my plan at any time?",
-    a: "Yes! You can upgrade, downgrade, or cancel your subscription at any time directly from your dashboard billing settings. Downgrades or cancellations will take effect at the end of your current billing period."
+    a: "Yes! You can upgrade, downgrade, or cancel your subscription at any time directly from your dashboard billing settings. Changes will take effect at the end of your current billing period."
   },
   {
-    q: "What is the difference between Static and Dynamic QR Codes?",
-    a: "Static QR Codes encode the destination URL directly; once printed, the URL cannot be updated. Dynamic QR Codes direct scans to a redirect link that you can update instantly inside QReview at any time, saving you from re-printing physical displays."
+    q: "What languages are supported?",
+    a: "Starter plan supports English + 1 local language of your choice. Growth plan includes multi-language auto-detection. Enterprise plan supports all local languages plus voice-to-text input for reviews."
   },
   {
-    q: "How are AI review reply credits counted?",
-    a: "Each time our Gemini AI models draft a response to a customer review, it counts as 1 credit. Credits reset at the start of your monthly billing cycle and do not roll over."
+    q: "How does the staff leaderboard work?",
+    a: "The real-time staff leaderboard tracks and displays performance metrics for each team member, helping you identify top performers and areas for improvement across your organization."
   },
   {
     q: "Is there a setup fee or hidden charges?",
     a: "Absolutely not. There are no setup fees, contract commitments, or hidden costs. The prices listed above are completely transparent."
-  },
-  {
-    q: "Do I need a credit card to sign up for the Starter plan?",
-    a: "No! The Starter plan is 100% free forever and requires no credit card details. You can explore our fundamental tools and upgrade only when you need more features."
   }
 ];
 
-const comparisonCategories = [
+const comparisonFeatures = [
   {
-    name: "Locations & Setup",
+    category: "Plan Overview",
     features: [
-      { name: "Business Locations", starter: "1 Location", growth: "Up to 3", premium: "Unlimited" },
-      { name: "Team Members", starter: "1 User", growth: "1 User", premium: "Up to 10 (Role-based)" }
+      { name: "Target Segment", starter: "Single Kirana / Salon / Clinic", growth: "Busy Cafe / Fine Dining", premium: "Multi-chain / Hospitals" },
+      { name: "Monthly Price", starter: "₹299", growth: "₹699", premium: "₹1,499" }
     ]
   },
   {
-    name: "QR Code Engine",
+    category: "Scan Limits & Languages",
     features: [
+      { name: "Review Scans / month", starter: "100", growth: "350", premium: "1,000" },
+      { name: "Languages Supported", starter: "English + 1 Local", growth: "Multi-language Auto-Detect", premium: "All Local + Voice-to-Text" },
+      { name: "Alerts (1-3 Stars)", starter: "Email Only", growth: "Email Only", premium: "Email Only" }
+    ]
+  },
+  {
+    category: "Physical Assets & Analytics",
+    features: [
+      { name: "QR Standee", starter: "PDF Printout", growth: "1 High-Quality Acrylic", premium: "3 Acrylic Standees" },
+      { name: "Analytics", starter: "Basic Counter", growth: "Monthly Insights & Sentiment Report", premium: "Real-Time Staff Leaderboard" }
+    ]
+  },
+  {
+    category: "Additional Features",
+    features: [
+      { name: "Business Locations", starter: "1", growth: "Up to 3", premium: "Unlimited" },
       { name: "Static QR Codes", starter: "Up to 3", growth: "Unlimited", premium: "Unlimited" },
       { name: "Dynamic QR Codes", starter: "—", growth: "Up to 20", premium: "Unlimited" },
-      { name: "QR Design & Colors", starter: "Basic", growth: "Advanced", premium: "Advanced + Custom CSS" },
-      { name: "Custom Logo & Shapes", starter: "—", growth: "Yes", premium: "Yes" },
-      { name: "White-label Scans", starter: "—", growth: "Yes (No branding)", premium: "Yes (Fully custom URL)" }
-    ]
-  },
-  {
-    name: "AI & Review Tools",
-    features: [
-      { name: "AI replies / month", starter: "10 generations", growth: "100 generations", premium: "Unlimited (2,000 soft-cap)" },
-      { name: "Email review requests", starter: "50 / mo", growth: "500 / mo", premium: "Unlimited" },
-      { name: "SMS review requests", starter: "—", growth: "100 / mo", premium: "1,000 / mo" },
-      { name: "Sentiment Tracking", starter: "Basic", growth: "90-day Analytics", premium: "Real-time + PDF Export" },
-      { name: "Google Reply Sync", starter: "—", growth: "Yes", premium: "Yes" }
-    ]
-  },
-  {
-    name: "Integrations & Support",
-    features: [
-      { name: "API & Webhook Access", starter: "—", growth: "—", premium: "Yes (Full REST API)" },
-      { name: "Zapier / CRM sync", starter: "—", growth: "Basic Sync", premium: "Advanced Integrations" },
-      { name: "Support Tier", starter: "Email (72h SLA)", growth: "Priority Email (24h)", premium: "Dedicated Account Mgr & 24/7 Chat" }
+      { name: "API Access", starter: "—", growth: "—", premium: "Full REST API" },
+      { name: "Team Management", starter: "—", growth: "—", premium: "Role-based (10 users)" }
     ]
   }
 ];
@@ -187,7 +186,6 @@ export default function PricingPage() {
           <div className="hidden items-center gap-8 md:flex">
             <Link href="/" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors">Features</Link>
             <Link href="/" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors">How it Works</Link>
-            {/* <Link href="/pricing" className="text-sm font-medium text-zinc-100 transition-colors">Pricing</Link> */}
             <Link href="/auth" className="rounded-full bg-zinc-100 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-md hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all">
               Get Started
             </Link>
@@ -227,7 +225,7 @@ export default function PricingPage() {
             <span className={`text-sm font-semibold transition-colors flex items-center gap-2 ${isYearly ? "text-zinc-100" : "text-zinc-400"}`}>
               Billed Annually
               <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 tracking-wider">
-                SAVE 20%
+                SAVE 16%
               </span>
             </span>
           </div>
@@ -239,6 +237,7 @@ export default function PricingPage() {
             {plans.map((plan, i) => {
               const price = isYearly ? plan.priceYearly : plan.priceMonthly;
               const pricePerMonth = isYearly ? Math.round(price / 12) : price;
+              const Icon = plan.icon;
 
               return (
                 <div
@@ -261,8 +260,15 @@ export default function PricingPage() {
                       </div>
                     )}
 
-                    <h3 className="text-xl font-bold text-zinc-100 mt-2">{plan.name}</h3>
-                    <p className="mt-2 text-sm text-zinc-400 leading-relaxed min-h-[40px]">{plan.description}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+                        <Icon className="h-5 w-5 text-emerald-400" />
+                      </div>
+                      <h3 className="text-xl font-bold text-zinc-100">{plan.name}</h3>
+                    </div>
+                    
+                    <p className="mt-1 text-xs font-medium text-emerald-400/80">{plan.segment}</p>
+                    <p className="mt-3 text-sm text-zinc-400 leading-relaxed min-h-[40px]">{plan.description}</p>
 
                     <div className="mt-6 flex items-baseline gap-1 text-zinc-100">
                       <span className="text-4xl font-extrabold tracking-tight">₹{pricePerMonth.toLocaleString()}</span>
@@ -271,11 +277,6 @@ export default function PricingPage() {
                     {isYearly && price > 0 && (
                       <div className="text-xs font-semibold text-emerald-400 mt-1.5">
                         Billed annually at ₹{price.toLocaleString()}
-                      </div>
-                    )}
-                    {price === 0 && (
-                      <div className="text-xs font-semibold text-zinc-500 mt-1.5">
-                        No credit card required
                       </div>
                     )}
 
@@ -323,15 +324,15 @@ export default function PricingPage() {
                   <th className="py-5 px-6 text-sm font-bold text-zinc-400">Features Matrix</th>
                   <th className="py-5 px-6 text-sm font-bold text-zinc-300">Starter</th>
                   <th className="py-5 px-6 text-sm font-bold text-emerald-400">Growth</th>
-                  <th className="py-5 px-6 text-sm font-bold text-zinc-300">Premium</th>
+                  <th className="py-5 px-6 text-sm font-bold text-zinc-300">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
-                {comparisonCategories.map((category, catIdx) => (
+                {comparisonFeatures.map((category, catIdx) => (
                   <React.Fragment key={catIdx}>
                     <tr className="border-b border-zinc-850 bg-zinc-950/70 font-semibold">
                       <td colSpan={4} className="py-4 px-6 text-xs text-zinc-500 uppercase tracking-widest bg-zinc-900/10">
-                        {category.name}
+                        {category.category}
                       </td>
                     </tr>
                     {category.features.map((feature, featIdx) => (
@@ -349,7 +350,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* Polished FAQ Accordion Section */}
+        {/* FAQ Accordion Section */}
         <section className="mx-auto max-w-4xl px-6 mt-32">
           <div className="mx-auto max-w-2xl text-center mb-16">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">Frequently Asked Questions</h2>
@@ -392,6 +393,26 @@ export default function PricingPage() {
           </div>
         </section>
 
+        {/* Trust Section */}
+        <section className="mx-auto max-w-4xl px-6 mt-20 text-center">
+          <div className="rounded-3xl border border-zinc-900 bg-zinc-900/20 p-8 backdrop-blur-sm">
+            <div className="flex flex-wrap justify-center gap-8">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-emerald-400" />
+                <span className="text-sm text-zinc-300">Secure Payments</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-emerald-400" />
+                <span className="text-sm text-zinc-300">Instant Activation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-emerald-400" />
+                <span className="text-sm text-zinc-300">Trusted by 500+ Businesses</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <footer className="bg-zinc-950 border-t border-zinc-900 py-12 px-6">
@@ -408,19 +429,18 @@ export default function PricingPage() {
         </div>
       </footer>
 
-      {/* Simulated Checkout Modal */}
+      {/* Checkout Modal */}
       {selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4">
           <div 
             className="relative w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-850 p-6 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Background Accent Glow */}
             <div className="absolute -top-12 -right-12 -z-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-xl pointer-events-none" />
 
             <div className="flex items-center justify-between border-b border-zinc-800/60 pb-4">
               <div>
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Simulated Checkout</span>
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Checkout</span>
                 <h3 className="text-xl font-bold text-zinc-100 mt-0.5">Subscribe to {selectedPlan.name}</h3>
               </div>
               {checkoutStep !== "loading" && (
@@ -450,7 +470,7 @@ export default function PricingPage() {
                   </div>
                   <p className="text-zinc-100 font-bold text-xl">Payment Successful!</p>
                   <p className="text-zinc-400 text-sm mt-2 px-4">
-                    Thank you! Your **{selectedPlan.name}** plan is now active. Redirecting you to the dashboard...
+                    Thank you! Your <span className="text-emerald-400 font-semibold">{selectedPlan.name}</span> plan is now active. Redirecting you to the dashboard...
                   </p>
                 </div>
               )}
@@ -462,6 +482,7 @@ export default function PricingPage() {
                     <div>
                       <p className="text-zinc-400 text-xs">Plan Selected</p>
                       <p className="text-zinc-200 font-bold">{selectedPlan.name} Plan ({isYearly ? "Annual" : "Monthly"})</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">{selectedPlan.segment}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-zinc-400 text-xs">Due Today</p>
@@ -471,7 +492,7 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  {/* Payment Form Fields */}
+                  {/* Payment Form */}
                   <div className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Cardholder Name</label>
@@ -538,7 +559,6 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="w-full rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-3 font-semibold text-sm tracking-wide shadow-lg hover:shadow-emerald-500/10 active:scale-98 transition-all flex items-center justify-center gap-2 mt-6"

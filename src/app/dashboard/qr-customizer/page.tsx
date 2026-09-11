@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { useTheme } from "next-themes";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 type Template = {
   id: string;
@@ -384,6 +385,7 @@ export default function QrCustomizerPage() {
   };
 
   return (
+    <ProtectedRoute requiredFeatures={['qrCodes']}>
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -858,5 +860,6 @@ export default function QrCustomizerPage() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
