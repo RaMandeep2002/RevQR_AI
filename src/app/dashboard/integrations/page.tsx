@@ -73,7 +73,7 @@ const getSnippet = (platform: Platform["id"], endpoint: string) => {
   if (platform === "react") {
     return `import { useEffect, useState } from "react";
 
-export function QReviewWidget() {
+export function DemoQRWidget() {
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
@@ -108,10 +108,10 @@ getReviews() {
 }`;
   }
 
-  return `[qreview_widget endpoint="${endpoint}"]
+  return `[DemoQR_widget endpoint="${endpoint}"]
 
 Future plugin flow:
-1. Install the QReview WordPress plugin.
+1. Install the DemoQR WordPress plugin.
 2. Paste your business endpoint in plugin settings.
 3. Place the shortcode on any page.`;
 };
@@ -152,7 +152,7 @@ export default function DashboardIntegrationsPage() {
     (business) => business.id === selectedBusinessId,
   );
   const snippet = useMemo(
-    () => getSnippet(selectedPlatform, endpoint || "YOUR_QREVIEW_ENDPOINT"),
+    () => getSnippet(selectedPlatform, endpoint || "YOUR_DemoQR_ENDPOINT"),
     [endpoint, selectedPlatform],
   );
 

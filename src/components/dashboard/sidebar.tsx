@@ -197,7 +197,7 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
             </motion.div>
             <div>
               <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                QReview
+                DemoQR
               </p>
               <p className="text-[10px] font-medium tracking-widest text-slate-400 dark:text-slate-500 uppercase">
                 Owner Dashboard

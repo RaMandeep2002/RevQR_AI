@@ -17,7 +17,7 @@ export default function WelcomeEmail({ name }: { name: string }) {
               Get started by creating your first QR code and see how easy it is to boost your customer feedback.
             </p>
             <div style={btnContainer}>
-              <a href="https://www.qreview.in/" style={button}>
+              <a href="https://www.DemoQR.in/" style={button}>
                 Go to Dashboard
               </a>
             </div>

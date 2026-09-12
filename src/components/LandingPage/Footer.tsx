@@ -93,7 +93,7 @@ export default function Footer() {
                 <div className="absolute -inset-2 rounded-full bg-primary/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
               </div>
               <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                QReview
+                DemoQR
               </span>
             </Link>
             
@@ -161,7 +161,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           <div className="flex items-center gap-4">
             <p className="text-sm font-medium text-muted-foreground">
-              © {year} QReview System. All rights reserved.
+              © {year} DemoQR System. All rights reserved.
             </p>
             <span className="hidden h-4 w-px bg-border/50 md:block" />
             <Link
@@ -177,7 +177,7 @@ export default function Footer() {
             <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
               <span>Made with</span>
               <Heart className="h-3 w-3 animate-pulse text-red-500" />
-              <span>by QReview Team</span>
+              <span>by DemoQR Team</span>
             </div>
 
             {/* Scroll to Top Button */}

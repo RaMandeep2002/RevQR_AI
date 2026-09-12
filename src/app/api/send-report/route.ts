@@ -17,15 +17,15 @@ export async function POST(req: Request) {
     const filename = `reviews-report-${new Date().toISOString().split("T")[0]}.csv`;
 
     const { data, error } = await resend.emails.send({
-      from: "QReview Reports <onboarding@resend.dev>",
+      from: "DemoQR Reports <onboarding@resend.dev>",
       to: email,
-      subject: `QReview Feedback Report - ${businessName || "All Locations"}`,
+      subject: `DemoQR Feedback Report - ${businessName || "All Locations"}`,
       text: `Hello,
 
 Please find attached the CSV report containing the customer feedback data for ${businessName || "your business locations"}.
 
 Best regards,
-The QReview Team`,
+The DemoQR Team`,
       attachments: [
         {
           filename: filename,

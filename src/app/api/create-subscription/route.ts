@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
     maxBusinesses: 1,
     maxStaticQRCodes: 3,
     maxDynamicQRCodes: 0,
+    qrCodes: 1, // Default for FREE plan
     acrylicStandees: 0,
     languages: 2, // English + 1 local language
     voiceToText: false,
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
       features.maxBusinesses = 1;
       features.maxStaticQRCodes = 3;
       features.maxDynamicQRCodes = 0;
+      features.qrCodes = 3;
       features.acrylicStandees = 0;
       features.languages = 2; // English + 1 local language
       features.voiceToText = false;
@@ -158,6 +160,7 @@ export async function POST(req: NextRequest) {
       features.maxBusinesses = 3;
       features.maxStaticQRCodes = 999; // Unlimited
       features.maxDynamicQRCodes = 20;
+      features.qrCodes = 999; // Unlimited
       features.acrylicStandees = 1;
       features.languages = 999; // Multi-language Auto-Detect
       features.voiceToText = false;
@@ -178,6 +181,7 @@ export async function POST(req: NextRequest) {
       features.maxBusinesses = 999; // Unlimited
       features.maxStaticQRCodes = 999; // Unlimited
       features.maxDynamicQRCodes = 999; // Unlimited
+      features.qrCodes = 999; // Unlimited
       features.acrylicStandees = 3;
       features.languages = 999; // All Local Languages
       features.voiceToText = true; // Voice-to-Text
@@ -199,6 +203,7 @@ export async function POST(req: NextRequest) {
       features.maxBusinesses = 1;
       features.maxStaticQRCodes = 1;
       features.maxDynamicQRCodes = 0;
+      features.qrCodes = 1;
       features.acrylicStandees = 0;
       features.languages = 1;
       features.voiceToText = false;

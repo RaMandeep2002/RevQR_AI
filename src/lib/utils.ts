@@ -61,7 +61,7 @@ export const generateProfessionalQrImage = async (
       // Brand Name
       ctx.fillStyle = "#17673b"; // Brand dark
       ctx.font = "bold 42px sans-serif";
-      ctx.fillText("QReview", canvas.width / 2, 280);
+      ctx.fillText("DemoQR", canvas.width / 2, 280);
       
       ctx.fillStyle = "#64748b";
       ctx.font = "500 24px sans-serif";
@@ -96,7 +96,7 @@ export const generateProfessionalQrImage = async (
       // Footer
       ctx.fillStyle = "#94a3b8";
       ctx.font = "400 18px sans-serif";
-      ctx.fillText("Powered by QReview", canvas.width / 2, 1175);
+      ctx.fillText("Powered by DemoQR", canvas.width / 2, 1175);
 
       resolve(canvas.toDataURL("image/png"));
     };

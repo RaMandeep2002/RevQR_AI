@@ -65,7 +65,7 @@ export async function GET(req: Request) {
 
       // 6. Send the email via Resend
       await resend.emails.send({
-        from: "QReview Reports <onboarding@resend.dev>",
+        from: "DemoQR Reports <onboarding@resend.dev>",
         to: email,
         subject: `Scheduled Report: ${business.name}`,
         text: `Hello,
@@ -73,7 +73,7 @@ export async function GET(req: Request) {
 Here is your scheduled customer feedback CSV report for "${business.name}".
 
 Best regards,
-The QReview Team`,
+The DemoQR Team`,
         attachments: [
           {
             filename,

@@ -6,7 +6,7 @@ export const onboadingTour: Tour[] = [
     steps: [
       {
         icon: '👋',
-        title: 'Welcome to QReview Setup!',
+        title: 'Welcome to DemoQR Setup!',
         content: "Let's get your business set up and generate your first review QR code in under two minutes.",
         selector: '#tour-welcome',
         side: 'bottom',

@@ -669,7 +669,7 @@ export default function UpgradePage() {
       const options: RazorpayOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         subscription_id: data.subscription.id,
-        name: "QReview",
+        name: "DemoQR",
         description: `${plan.name} Plan - ${isYearly ? "Annual" : "Monthly"} Subscription`,
         prefill: {
           email: user.email,

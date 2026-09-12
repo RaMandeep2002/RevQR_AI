@@ -79,7 +79,7 @@ export default function NavBar() {
                 <div className="absolute inset-0 rounded-xl border-2 border-emerald-500/30 opacity-0 group-hover:opacity-100 animate-ping-slow" />
               </div>
               <span className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-white transition-colors">
-                QReview
+                DemoQR
               </span>
             </div>
           </Link>
@@ -202,7 +202,7 @@ export default function NavBar() {
           {/* Mobile Logo */}
           <div className="mb-4 flex items-center gap-3">
             <QrCode className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">QReview</span>
+            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">DemoQR</span>
           </div>
 
           {/* Mobile Links */}

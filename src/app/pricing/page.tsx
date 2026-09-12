@@ -181,7 +181,7 @@ export default function PricingPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200">
               <QrCode className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-500">QReview</span>
+            <span className="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-500">DemoQR</span>
           </Link>
           <div className="hidden items-center gap-8 md:flex">
             <Link href="/" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors">Features</Link>
@@ -354,7 +354,7 @@ export default function PricingPage() {
         <section className="mx-auto max-w-4xl px-6 mt-32">
           <div className="mx-auto max-w-2xl text-center mb-16">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">Frequently Asked Questions</h2>
-            <p className="mt-2 text-sm text-zinc-400">Got questions about QReview AI billing cycles or caps? We have answers.</p>
+            <p className="mt-2 text-sm text-zinc-400">Got questions about DemoQR AI billing cycles or caps? We have answers.</p>
           </div>
 
           <div className="space-y-4">
@@ -419,9 +419,9 @@ export default function PricingPage() {
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-zinc-400 opacity-80 hover:opacity-100 transition-opacity">
             <QrCode className="h-5 w-5" />
-            <span className="text-lg font-bold">QReview</span>
+            <span className="text-lg font-bold">DemoQR</span>
           </Link>
-          <p className="text-sm text-zinc-500">© 2026 QReview System. All rights reserved.</p>
+          <p className="text-sm text-zinc-500">© 2026 DemoQR System. All rights reserved.</p>
           <div className="flex gap-6 text-sm font-medium text-zinc-500">
             <a href="#" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-zinc-300 transition-colors">Terms of Service</a>

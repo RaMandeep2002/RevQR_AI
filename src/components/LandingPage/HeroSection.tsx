@@ -97,7 +97,7 @@ export default function Hero() {
       </h1>
 
       <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl animate-fade-in-up">
-        Boost your reputation with QReview. Use AI-powered QR code feedback
+        Boost your reputation with DemoQR. Use AI-powered QR code feedback
         systems to collect reviews, automate smart replies, and analyze customer
         sentiment in real-time.
       </p>

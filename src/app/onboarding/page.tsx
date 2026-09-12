@@ -74,7 +74,7 @@ export default function OnboardingPage() {
   const { startNextStep } = useNextStep();
 
   useEffect(() => {
-    const tourSeen = localStorage.getItem("qreview_onbaoding_tour_seen");
+    const tourSeen = localStorage.getItem("DemoQR_onbaoding_tour_seen");
     if (!tourSeen) {
       const timer = setTimeout(() => {
         startNextStep("onboardingTour");
@@ -218,8 +218,8 @@ export default function OnboardingPage() {
           <div className="absolute inset-0 bg-slate-950/70" />
           <div className="relative z-10 flex items-center justify-between">
             <img
-              src="/Qreview-logo.png"
-              alt="QReview Logo"
+              src="/DemoQR-logo.png"
+              alt="DemoQR Logo"
               className="h-auto w-44 brightness-0 invert"
             />
             <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-100">
@@ -239,7 +239,7 @@ export default function OnboardingPage() {
               Build your first review QR setup.
             </h1>
             <p className="mt-5 max-w-lg text-base font-medium leading-7 text-slate-200">
-              Add your business details once. QReview creates a review
+              Add your business details once. DemoQR creates a review
               collection QR poster and opens the dashboard with your new
               business ready to manage.
             </p>
@@ -366,7 +366,7 @@ export default function OnboardingPage() {
                   <Input
                     value={form.name}
                     onChange={(event) => updateForm("name", event.target.value)}
-                    placeholder="QReview Coffee House"
+                    placeholder="DemoQR Coffee House"
                     required
                     className="h-12 rounded-lg border-slate-200 bg-slate-50 px-4 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />

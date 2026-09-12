@@ -733,7 +733,7 @@ export default function QrCustomizerPage() {
           {/* Brand */}
           <div className="relative mt-6 text-center">
             <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 tracking-wider uppercase">
-              Powered by QReview.in
+              Powered by DemoQR.in
             </p>
           </div>
         </Card>

@@ -6,7 +6,7 @@ export const tourSteps: Tour[] = [
     steps: [
       {
         icon: '👋',
-        title: 'Welcome to QReview Dashboard!',
+        title: 'Welcome to DemoQR Dashboard!',
         content: "Let's take a quick tour to help you get started with managing your business reviews and generating QR codes.",
         selector: '#tour-welcome',
         side: 'bottom',
@@ -97,7 +97,7 @@ export const tourSteps: Tour[] = [
     steps: [
       {
         icon: '👋',
-        title: 'Welcome to QReview Setup!',
+        title: 'Welcome to DemoQR Setup!',
         content: "Let's get your business set up and generate your first review QR code in under two minutes.",
         selector: '#tour-welcome',
         side: 'bottom',

@@ -509,7 +509,7 @@ export default function AnalyticsPage() {
       ].join("\n");
 
       const businessName =
-        data.allReviews[0]?.businesses?.name || "QReview Business";
+        data.allReviews[0]?.businesses?.name || "DemoQR Business";
 
       const res = await fetch("/api/send-report", {
         method: "POST",
