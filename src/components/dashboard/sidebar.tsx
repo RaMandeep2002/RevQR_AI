@@ -169,7 +169,7 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 w-[280px] transform overflow-hidden
+      className={`fixed inset-y-0 left-0 z-50 w-[240px] transform overflow-hidden
         border-r border-slate-200/50 dark:border-white/5
         bg-white dark:bg-[#0B1120]
         shadow-2xl shadow-slate-200/30 dark:shadow-[0_0_60px_rgba(0,0,0,0.6)]
@@ -184,16 +184,16 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
         <div className="absolute top-1/2 left-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/5 blur-3xl dark:bg-emerald-500/5" />
       </div>
 
-      <div className="relative flex h-full flex-col px-4 py-6">
+      <div className="relative flex h-full flex-col px-3 py-4">
         {/* Header / Logo */}
-        <div className="mb-8 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
+        <div className="mb-6 flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-2 group">
             <motion.div
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25"
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25"
               whileHover={{ scale: 1.05, rotate: -5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <QrCode className="h-5 w-5 text-white" />
+              <QrCode className="h-4 w-4 text-white" />
             </motion.div>
             <div>
               <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -293,7 +293,7 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
                       key={item.href}
                       href={item.href}
                       onClick={onClose}
-                      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+                      className={`group relative flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium
                         transition-all duration-200
                         ${
                           isActive
@@ -315,7 +315,7 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
                       )}
 
                       <Icon
-                        className={`h-5 w-5 transition-all ${
+                        className={`h-4 w-4 transition-all ${
                           isActive
                             ? "text-indigo-600 dark:text-indigo-300"
                             : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
@@ -343,19 +343,19 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
         <div className="border-t border-slate-200/50 dark:border-white/5 pt-4">
           <Link
             href="/dashboard/profile"
-            className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer group"
+            className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer group"
           >
             <div className="relative">
               {user?.avatar_url ? (
                 <Image
                   src={user.avatar_url}
                   alt={user.full_name || "User"}
-                  width={36}
-                  height={36}
-                  className="h-9 w-9 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
                 />
               ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
                   {initials}
                 </div>
               )}
@@ -375,7 +375,7 @@ export function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
           <button
             onClick={signOut}
             disabled={isSigningOut}
-            className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+            className="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium
               text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10
               transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >

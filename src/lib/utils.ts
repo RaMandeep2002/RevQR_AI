@@ -5,6 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Convert a business name to a URL-safe slug.
+ * e.g. "My Café & Grill" → "my-cafe-grill"
+ */
+export function slugify(name: string): string {
+  return name
+    .normalize("NFD")                       // decompose accented chars
+    .replace(/[\u0300-\u036f]/g, "")        // strip diacritics
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")          // keep letters, digits, spaces, hyphens
+    .trim()
+    .replace(/\s+/g, "-")                   // spaces → hyphens
+    .replace(/-+/g, "-");                   // collapse repeated hyphens
+}
 
 export const sanitizeReviewText = (text: string) => {
   return text

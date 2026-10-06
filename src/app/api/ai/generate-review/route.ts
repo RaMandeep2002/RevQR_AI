@@ -68,20 +68,66 @@ const LANGUAGE_INSTRUCTIONS: Record<string, string> = {
   sa: "Use Devanagari script. Write in natural, conversational Sanskrit.",
 };
 
+// Cap personalization fields to avoid abuse
+const MAX_PERSONALIZATION_LENGTH = 200;
+
+/**
+ * Safely trims and caps a personalization string.
+ * Returns undefined if empty after trimming.
+ */
+function sanitizePersonalization(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  return trimmed.slice(0, MAX_PERSONALIZATION_LENGTH);
+}
+
+/**
+ * Safely trims a string. Returns undefined if empty.
+ */
+function cleanString(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
 export async function POST(request: Request) {
+  let requestBusinessId: string | undefined = undefined;
   try {
     console.log("=== GENERATE REVIEW API START ===");
-    
-    const { 
-      stars, 
-      businessName, 
-      category, 
-      businessId, 
-      language: userSelectedLanguage 
+
+    const {
+      stars,
+      businessName: rawBusinessName,
+      category: rawCategory,
+      businessId,
+      language: userSelectedLanguage,
+      // NEW: personalised touch fields
+      enjoyedDishes: rawEnjoyedDishes,
+      serviceComments: rawServiceComments,
     } = await request.json();
-    
-    console.log("Request payload:", { stars, businessName, category, businessId, userSelectedLanguage });
-    
+
+    requestBusinessId = businessId;
+
+    // No generic placeholders — omit if missing
+    const businessName = cleanString(rawBusinessName);
+    const category = cleanString(rawCategory);
+
+    const enjoyedDishes = sanitizePersonalization(rawEnjoyedDishes);
+    const serviceComments = sanitizePersonalization(rawServiceComments);
+    const hasPersonalization = Boolean(enjoyedDishes || serviceComments);
+
+    console.log("Request payload:", {
+      stars,
+      businessName,
+      category,
+      businessId,
+      userSelectedLanguage,
+      hasPersonalization,
+      enjoyedDishes: enjoyedDishes ? `${enjoyedDishes.substring(0, 60)}...` : undefined,
+      serviceComments: serviceComments ? `${serviceComments.substring(0, 60)}...` : undefined,
+    });
+
     const rating = Number(stars);
 
     if (![1, 2, 3, 4, 5].includes(rating)) {
@@ -91,8 +137,8 @@ export async function POST(request: Request) {
 
     if (!process.env.GEMINI_API_KEY) {
       console.error("Missing GEMINI_API_KEY environment variable");
-      return NextResponse.json({ 
-        error: "Missing GEMINI_API_KEY environment variable." 
+      return NextResponse.json({
+        error: "Missing GEMINI_API_KEY environment variable."
       }, { status: 500 });
     }
 
@@ -111,11 +157,11 @@ export async function POST(request: Request) {
         .select("tone, keywords, languages")
         .eq("id", businessId)
         .maybeSingle();
-      
+
       if (error) {
         console.error("Error fetching business:", error);
       }
-      
+
       if (business) {
         businessSettings.tone = business.tone || "Professional";
         businessSettings.keywords = business.keywords || "";
@@ -140,7 +186,6 @@ export async function POST(request: Request) {
     console.log("Business languages:", businessSettings.languages);
 
     if (userSelectedLanguage) {
-      // Check if the language is supported
       const mappedLanguage = LANGUAGE_MAP[userSelectedLanguage];
       if (mappedLanguage) {
         finalLanguage = mappedLanguage;
@@ -148,7 +193,6 @@ export async function POST(request: Request) {
         console.log(`User selected language "${userSelectedLanguage}" mapped to "${finalLanguage}"`);
       } else {
         console.log(`User selected language "${userSelectedLanguage}" not supported, falling back to business language or English`);
-        // Fallback to first business language or English
         const firstBusinessLang = businessSettings.languages[0] || "en";
         const mappedBusinessLang = LANGUAGE_MAP[firstBusinessLang];
         if (mappedBusinessLang) {
@@ -162,7 +206,6 @@ export async function POST(request: Request) {
         }
       }
     } else if (businessSettings.languages && businessSettings.languages.length > 0) {
-      // Use the first language from business settings
       const firstLanguage = businessSettings.languages[0];
       const mappedLanguage = LANGUAGE_MAP[firstLanguage];
       if (mappedLanguage) {
@@ -182,32 +225,74 @@ export async function POST(request: Request) {
 
     // Build language instruction for AI
     let languageInstruction = `IMPORTANT: Write the ENTIRE review in ${finalLanguage} language.`;
-    
-    // Add script-specific instruction if available
+
     const scriptInstruction = LANGUAGE_INSTRUCTIONS[languageCode];
     if (scriptInstruction) {
       languageInstruction += ` ${scriptInstruction}`;
     }
-    
-    // If writing in a non-English language, emphasize it more
+
     if (languageCode !== "en") {
       languageInstruction += ` The response must be completely in ${finalLanguage}. Do NOT use English except for business names and technical terms.`;
     }
 
     console.log("Language instruction:", languageInstruction);
 
-    // Build the prompt with tone and keywords from business
+    // ===== Build business context lines (omit if missing) =====
+    const businessContextLines: string[] = [];
+    if (businessName) {
+      businessContextLines.push(`Business Name: "${businessName}"`);
+    }
+    if (category) {
+      businessContextLines.push(`Category: "${category}"`);
+    }
+    const businessContext = businessContextLines.join("\n    ");
+
+    // ===== Build personalization block for the prompt =====
+    let personalizationBlock = "";
+    if (hasPersonalization) {
+      personalizationBlock = `
+    ===== CUSTOMER'S PERSONAL DETAILS (weave these in naturally) =====
+    The customer has shared specific details about their experience. You MUST naturally incorporate these into the review to make it authentic and personal. Do NOT just list them — write them into the narrative.`;
+
+      if (enjoyedDishes) {
+        personalizationBlock += `
+    - Dishes/Items they enjoyed: "${enjoyedDishes}"
+      (Mention these specific items by name in at least one of the review options.)`;
+      }
+
+      if (serviceComments) {
+        personalizationBlock += `
+    - Comments on service: "${serviceComments}"
+      (Reflect this sentiment in the review — whether positive or constructive.)`;
+      }
+
+      personalizationBlock += `
+    ===== END CUSTOMER DETAILS =====
+    `;
+    } else {
+      personalizationBlock = `
+    ===== NO PERSONAL DETAILS PROVIDED =====
+    The customer did not share specific details. Write natural, category-appropriate reviews.
+    `;
+    }
+
     const prompt = `Act as a customer writing a review for a business.
-    Business Name: "${businessName || "this establishment"}"
-    Category: "${category || "Service"}"
-    Rating: ${rating} out of 5 stars.
+    ${businessContext ? businessContext + "\n    " : ""}Rating: ${rating} out of 5 stars (use this ONLY to set the overall tone — do NOT mention the star rating or number of stars in the review text).
     ${languageInstruction}
     Tone: ${businessSettings.tone}
     Keywords to naturally include if relevant: ${businessSettings.keywords || "none"}
+    ${personalizationBlock}
 
-    Generate 3 different review options that sound natural and are specific to this business category.
-    Keep each option under 50 words. 
-    Return them as a JSON array of strings: ["Review 1", "Review 2", "Review 3"]. 
+    CRITICAL RULES:
+    - Do NOT mention the star rating, number of stars, or phrases like "I'd give it X stars", "I'm rating this X stars", "four stars", "five stars", etc.
+    - Do NOT include phrases like "I'd happily give it", "I would rate this", "my rating is", "stars" anywhere in the review.
+    - The rating is submitted separately — just write a natural review that reflects the sentiment of a ${rating}-star experience.
+    - Sound like a real customer sharing their experience, not a template.
+
+    Generate 3 different review options that sound natural and are specific to this business category.  
+    ${hasPersonalization ? "Each option must include at least one of the customer's personal details above." : ""}
+    Keep each option under 50 words.
+    Return them as a JSON array of strings: ["Review 1", "Review 2", "Review 3"].
     Output ONLY the JSON array.`;
 
     console.log("=== PROMPT SENT TO GEMINI ===");
@@ -216,13 +301,16 @@ export async function POST(request: Request) {
     console.log(prompt);
     console.log("----------------------------------------");
     console.log("Prompt details:");
-    console.log("- Business Name:", businessName || "this establishment");
-    console.log("- Category:", category || "Service");
+    console.log("- Business Name:", businessName || "(not provided)");
+    console.log("- Category:", category || "(not provided)");
     console.log("- Rating:", rating);
     console.log("- Language:", finalLanguage);
     console.log("- Language Code:", languageCode);
     console.log("- Tone:", businessSettings.tone);
     console.log("- Keywords:", businessSettings.keywords || "none");
+    console.log("- Has personalization:", hasPersonalization);
+    if (enjoyedDishes) console.log("- Enjoyed dishes:", enjoyedDishes);
+    if (serviceComments) console.log("- Service comments:", serviceComments);
     console.log("=== END PROMPT ===");
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -231,7 +319,7 @@ export async function POST(request: Request) {
     const startTime = Date.now();
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -248,9 +336,8 @@ export async function POST(request: Request) {
     const outputTokens = usage?.candidatesTokenCount || 0;
     const totalTokens = usage?.totalTokenCount || 0;
 
-    // Cost calculation
     const pricing = calculateGeminiCost(inputTokens, outputTokens);
-    
+
     console.log("=== GEMINI RESPONSE METADATA ===");
     console.log("Language used:", finalLanguage);
     console.log("Language Code:", languageCode);
@@ -258,22 +345,22 @@ export async function POST(request: Request) {
     console.log("Output Tokens:", outputTokens);
     console.log("Total Tokens:", totalTokens);
     console.log("Estimated Cost USD:", pricing.totalCost);
-    console.log("Cost breakdown:", { 
-      inputCost: pricing.inputCost, 
-      outputCost: pricing.outputCost, 
-      totalCost: pricing.totalCost 
+    console.log("Cost breakdown:", {
+      inputCost: pricing.inputCost,
+      outputCost: pricing.outputCost,
+      totalCost: pricing.totalCost
     });
     console.log("Tone used:", businessSettings.tone);
     console.log("Keywords used:", businessSettings.keywords);
+    console.log("Personalization applied:", hasPersonalization);
     console.log("=== END METADATA ===");
 
     const rawText = response.text || "[]";
     console.log("Raw response from Gemini:", rawText.substring(0, 200) + (rawText.length > 200 ? "..." : ""));
-    
+
     let options: string[] = [];
     try {
       options = JSON.parse(rawText);
-      // Validate that we got an array
       if (!Array.isArray(options)) {
         console.log("Response is not an array, wrapping in array");
         options = [rawText];
@@ -281,7 +368,6 @@ export async function POST(request: Request) {
       console.log(`Parsed ${options.length} review options`);
     } catch (error) {
       console.error("Failed to parse Gemini response as JSON:", error);
-      // Fallback if AI doesn't return valid JSON
       options = [rawText];
     }
 
@@ -293,19 +379,40 @@ export async function POST(request: Request) {
 
     console.log("=== GENERATE REVIEW API END ===");
 
+    if (requestBusinessId) {
+      console.log(`Incrementing successful generation stats for business: ${requestBusinessId}`);
+      const { error: rpcError } = await adminClient.rpc("increment_generation_stats", {
+        p_business_id: requestBusinessId,
+        p_is_successful: true
+      });
+      if (rpcError) {
+        console.error("Failed to increment generation stats:", rpcError);
+      }
+    }
+
     return NextResponse.json({
       options: sanitizedOptions,
       language: finalLanguage,
       languageCode: languageCode,
       tone: businessSettings.tone,
       keywords: businessSettings.keywords,
+      personalizationApplied: hasPersonalization,
     });
   } catch (error: unknown) {
     console.error("Gemini Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("Error message:", errorMessage);
+    
+    if (requestBusinessId) {
+      console.log(`Incrementing failed generation stats for business: ${requestBusinessId}`);
+      await adminClient.rpc("increment_generation_stats", {
+        p_business_id: requestBusinessId,
+        p_is_successful: false
+      });
+    }
+
     return NextResponse.json(
-      { error: `Failed to generate review: ${errorMessage}` }, 
+      { error: `Failed to generate review: ${errorMessage}` },
       { status: 500 }
     );
   }
@@ -315,9 +422,6 @@ function calculateGeminiCost(
   inputTokens: number,
   outputTokens: number
 ) {
-  // Gemini 2.0 Flash pricing (updated)
-  // Update anytime from official pricing page
-
   const INPUT_PRICE_PER_1M = 0.10; // $0.10 per 1M input tokens (Gemini 2.0 Flash)
   const OUTPUT_PRICE_PER_1M = 0.40; // $0.40 per 1M output tokens (Gemini 2.0 Flash)
 

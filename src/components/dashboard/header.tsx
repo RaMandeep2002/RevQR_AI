@@ -102,7 +102,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8 dark:border-slate-700/50 dark:bg-slate-900/80">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl px-4 lg:px-6 dark:border-slate-700/50 dark:bg-slate-900/80">
       <div className="flex flex-1 items-center gap-4">
         {/* Mobile Menu Button */}
         <motion.button
@@ -164,7 +164,7 @@ export function DashboardHeader({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800"
             aria-label="Theme selector"
           >
             {theme === "dark" ? (
@@ -257,14 +257,14 @@ export function DashboardHeader({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowDropdown(!showDropdown)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-200 bg-indigo-100 font-bold text-indigo-700 transition-all hover:ring-4 hover:ring-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:ring-indigo-900/50"
+            className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-200 bg-indigo-100 text-xs font-bold text-indigo-700 transition-all hover:ring-4 hover:ring-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:ring-indigo-900/50"
           >
             {user?.avatar_url ? (
               <Image
                 src={user.avatar_url}
                 alt={user.full_name || "User"}
-                width={40}
-                height={40}
+                width={32}
+                height={32}
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (

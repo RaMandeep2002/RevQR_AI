@@ -478,12 +478,12 @@ export default function DashboardOverviewPage() {
             </motion.div>
             <div id="tour-welcome" className="min-w-0 flex-1">
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
                   Dashboard
                 </h1>
                 <PlanBadge variant="compact" />
               </div>
-              <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate sm:whitespace-normal">
+              <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate sm:whitespace-normal">
                 Welcome back! Here's what's happening with your business.
               </p>
             </div>
@@ -673,7 +673,7 @@ export default function DashboardOverviewPage() {
             variants={fadeInUp}
             whileHover={{ y: 4, transition: { duration: 0.2 } }}
           >
-            <Card className="group relative overflow-hidden border-0 bg-white/50 p-4 sm:p-5 lg:p-6 backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-800/50">
+            <Card className="group relative overflow-hidden border-0 bg-white/50 p-3 sm:p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-800/50">
               <motion.div
                 className="absolute -right-6 -top-6 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-gradient-to-br opacity-5 blur-2xl"
                 style={{ background: `linear-gradient(135deg, ${stat.color})` }}
@@ -697,7 +697,7 @@ export default function DashboardOverviewPage() {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 300 }}
-                    className="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white truncate"
+                    className="mt-1 sm:mt-1.5 text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white truncate"
                   >
                     {stat.value}
                   </motion.p>
@@ -745,8 +745,8 @@ export default function DashboardOverviewPage() {
         <motion.div id="rating-distribution" variants={fadeInUp}>
           <PlanGuard requiredFeature="basic_analytics">
             {isGenerating ? (
-              <Card className="border-0 bg-white/50 p-4 sm:p-5 lg:p-6 backdrop-blur-sm dark:bg-slate-800/50">
-                <h3 className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Card className="border-0 bg-white/50 p-3 sm:p-4 backdrop-blur-sm dark:bg-slate-800/50">
+                <h3 className="text-[10px] sm:text-xs font-medium text-slate-700 dark:text-slate-300">
                   Rating Distribution
                 </h3>
                 <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
@@ -781,9 +781,9 @@ export default function DashboardOverviewPage() {
                 </div>
               </Card>
             ) : filteredReviews.length > 0 ? (
-              <Card className="border-0 bg-white/50 p-4 sm:p-5 lg:p-6 backdrop-blur-sm dark:bg-slate-800/50">
+              <Card className="border-0 bg-white/50 p-3 sm:p-4 backdrop-blur-sm dark:bg-slate-800/50">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <h3 className="text-[10px] sm:text-xs font-medium text-slate-700 dark:text-slate-300">
                     Rating Distribution
                   </h3>
                   <span className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500">

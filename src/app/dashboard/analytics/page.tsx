@@ -29,6 +29,12 @@ import {
   Mail,
   RefreshCw,
   Building2,
+  Sparkles,
+  Target,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
@@ -41,6 +47,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip as Tool,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 // Types
@@ -52,6 +64,8 @@ interface Review {
   stars: number;
   review_text: string;
   created_at: string;
+  generation_count?: number;
+  is_successful?: boolean;
   businesses: {
     name: string;
   };
@@ -75,6 +89,8 @@ interface AnalyticsData {
   averageRating: number;
   positiveReviews: number;
   negativeReviews: number;
+  totalAIGenerations: number;
+  aiSuccessRate: number;
   ratingsOverTime: RatingData[];
   responseVolume: ResponseVolumeData[];
   ratingByForm: RatingByFormData[];
@@ -113,12 +129,16 @@ interface RatingDistribution {
 
 const COLORS = ["#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#3B82F6"];
 
+const ITEMS_PER_PAGE = 10;
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData>({
     totalResponses: 0,
     averageRating: 0,
     positiveReviews: 0,
     negativeReviews: 0,
+    totalAIGenerations: 0,
+    aiSuccessRate: 0,
     ratingsOverTime: [],
     responseVolume: [],
     ratingByForm: [],
@@ -133,6 +153,13 @@ export default function AnalyticsPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Data table states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<keyof Review>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [tableSearchQuery, setTableSearchQuery] = useState("");
+  const [tableRatingFilter, setTableRatingFilter] = useState<string>("all");
+
   // Fetch businesses and analytics data
   const fetchData = async () => {
     setIsLoading(true);
@@ -142,7 +169,7 @@ export default function AnalyticsPage() {
       // Fetch businesses from API
       const businessRes = await fetch("/api/businesses");
       const businessJson = await businessRes.json();
-      
+
       const nextBusinesses = businessJson.data || [];
       setBusinesses(nextBusinesses);
 
@@ -151,10 +178,10 @@ export default function AnalyticsPage() {
         // Check URL params for businessId
         const params = new URLSearchParams(window.location.search);
         const requestedBusinessId = params.get("businessId");
-        
+
         if (requestedBusinessId) {
           const requestedBusiness = nextBusinesses.find(
-            (business: Business) => business.id === requestedBusinessId
+            (business: Business) => business.id === requestedBusinessId,
           );
           setSelectedBusiness(requestedBusiness?.id || nextBusinesses[0].id);
         } else {
@@ -168,7 +195,6 @@ export default function AnalyticsPage() {
 
       // Fetch analytics data for the selected business
       await fetchAnalyticsData(nextBusinesses);
-      
     } catch (error) {
       console.error("Error fetching data:", error);
       setError("Failed to load data. Please try again.");
@@ -179,7 +205,7 @@ export default function AnalyticsPage() {
   const fetchAnalyticsData = async (businessList?: Business[]) => {
     try {
       const currentBusinesses = businessList || businesses;
-      
+
       // Build query params
       const params = new URLSearchParams();
       if (selectedBusiness !== "all") {
@@ -194,7 +220,6 @@ export default function AnalyticsPage() {
         fetch(`/api/reviews/stats?${params.toString()}`),
       ]);
 
-
       if (!reviewsResponse.ok || !statsResponse.ok) {
         throw new Error("Failed to fetch analytics data");
       }
@@ -202,9 +227,8 @@ export default function AnalyticsPage() {
       const reviewsData = await reviewsResponse.json();
       const statsData = await statsResponse.json();
 
-
-      console.log("reviewsData -----> ", reviewsData)
-      console.log("statsData -----> ", statsData)
+      console.log("reviewsData -----> ", reviewsData);
+      console.log("statsData -----> ", statsData);
 
       const reviews: Review[] = reviewsData.data || [];
       const stats: ReviewStats[] = statsData.data || [];
@@ -231,6 +255,11 @@ export default function AnalyticsPage() {
     }
   }, [selectedBusiness, timeRange]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tableSearchQuery, tableRatingFilter, sortField, sortDirection]);
+
   const processAnalyticsData = (
     reviews: Review[],
     stats: ReviewStats[],
@@ -240,6 +269,15 @@ export default function AnalyticsPage() {
     const averageRating = totalResponses > 0 ? totalStars / totalResponses : 0;
     const positiveReviews = reviews.filter((r) => r.stars >= 4).length;
     const negativeReviews = reviews.filter((r) => r.stars <= 2).length;
+
+    const reviewsWithAI = reviews.filter((r) => (r.generation_count || 0) > 0);
+    const totalAIGenerations = reviewsWithAI.reduce(
+      (sum, r) => sum + (r.generation_count || 0),
+      0,
+    );
+    const aiSuccesses = reviewsWithAI.filter((r) => r.is_successful).length;
+    const aiSuccessRate =
+      totalAIGenerations > 0 ? (aiSuccesses / reviewsWithAI.length) * 100 : 0;
 
     // Rating distribution
     const distribution = [1, 2, 3, 4, 5].map((stars) => {
@@ -316,9 +354,9 @@ export default function AnalyticsPage() {
       "Product Quality": ["quality", "durable", "well-made", "premium"],
       "Customer Support": ["support", "helpful", "responsive", "friendly"],
       "Value for Money": ["worth", "price", "value", "affordable"],
-      "Delivery": ["fast", "quick", "shipping", "delivery"],
-      "Cleanliness": ["clean", "tidy", "organized", "neat"],
-      "Professionalism": ["professional", "knowledgeable", "expert"],
+      Delivery: ["fast", "quick", "shipping", "delivery"],
+      Cleanliness: ["clean", "tidy", "organized", "neat"],
+      Professionalism: ["professional", "knowledgeable", "expert"],
     };
 
     reviews.forEach((review) => {
@@ -354,6 +392,8 @@ export default function AnalyticsPage() {
       averageRating,
       positiveReviews,
       negativeReviews,
+      totalAIGenerations,
+      aiSuccessRate,
       ratingsOverTime,
       responseVolume,
       ratingByForm,
@@ -388,6 +428,8 @@ export default function AnalyticsPage() {
       "Rating",
       "Review Text",
       "Business",
+      "Generations",
+      "AI Successful",
     ];
 
     const rows = data.allReviews.map((review) => {
@@ -412,6 +454,8 @@ export default function AnalyticsPage() {
         review.stars.toString(),
         `"${reviewText.replace(/"/g, '""')}"`,
         review.businesses?.name || "",
+        (review.generation_count || 0).toString(),
+        review.is_successful ? "Yes" : "No",
       ];
     });
 
@@ -432,7 +476,7 @@ export default function AnalyticsPage() {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    
+
     toast.success("CSV exported successfully!");
   };
 
@@ -451,7 +495,9 @@ export default function AnalyticsPage() {
       } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
-        toast.error("Could not retrieve your email. Please try logging in again.");
+        toast.error(
+          "Could not retrieve your email. Please try logging in again.",
+        );
         setIsSendingEmail(false);
         return;
       }
@@ -476,6 +522,8 @@ export default function AnalyticsPage() {
         "Rating",
         "Review Text",
         "Business",
+        "Generations",
+        "AI Successful",
       ];
 
       const rows = data.allReviews.map((review) => {
@@ -500,6 +548,8 @@ export default function AnalyticsPage() {
           review.stars.toString(),
           `"${reviewText.replace(/"/g, '""')}"`,
           review.businesses?.name || "",
+          (review.generation_count || 0).toString(),
+          review.is_successful ? "Yes" : "No",
         ];
       });
 
@@ -538,6 +588,110 @@ export default function AnalyticsPage() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const formatFullDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const cleanCustomerName = (name: string) => {
+    if (!name) return "Anonymous";
+    let cleaned = name.replace(/^\d+\s*/, "").trim();
+    if (!cleaned) return "Anonymous";
+    return cleaned
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  const renderStars = (stars: number) => {
+    return (
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`h-3.5 w-3.5 ${
+              star <= stars
+                ? "fill-amber-400 text-amber-400"
+                : "fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  // Filter and sort reviews for the table
+  const filteredAndSortedReviews = (() => {
+    let filtered = [...data.allReviews];
+
+    // Apply search filter
+    if (tableSearchQuery.trim()) {
+      const query = tableSearchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (review) =>
+          cleanCustomerName(review.customer_name)
+            .toLowerCase()
+            .includes(query) ||
+          review.customer_email?.toLowerCase().includes(query) ||
+          review.review_text?.toLowerCase().includes(query) ||
+          review.businesses?.name?.toLowerCase().includes(query),
+      );
+    }
+
+    // Apply rating filter
+    if (tableRatingFilter !== "all") {
+      const ratingNum = parseInt(tableRatingFilter);
+      filtered = filtered.filter((review) => review.stars === ratingNum);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aVal: any = a[sortField];
+      let bVal: any = b[sortField];
+
+      // Handle special cases
+      if (sortField === "customer_name") {
+        aVal = cleanCustomerName(a.customer_name);
+        bVal = cleanCustomerName(b.customer_name);
+      }
+
+      if (typeof aVal === "string") {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  })();
+
+  // Pagination
+  const totalPages = Math.ceil(
+    filteredAndSortedReviews.length / ITEMS_PER_PAGE,
+  );
+  const paginatedReviews = filteredAndSortedReviews.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  const handleSort = (field: keyof Review) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
   };
 
   const StatCard = ({
@@ -621,10 +775,11 @@ export default function AnalyticsPage() {
             No Businesses Found
           </h3>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            You don't have any businesses registered yet. Create your first business to start collecting reviews.
+            You don't have any businesses registered yet. Create your first
+            business to start collecting reviews.
           </p>
           <Button
-            onClick={() => window.location.href = "/dashboard/businesses/new"}
+            onClick={() => (window.location.href = "/dashboard/businesses/new")}
             className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
           >
             Create Business
@@ -669,9 +824,9 @@ export default function AnalyticsPage() {
             No Reviews Yet
           </h3>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            {selectedBusiness === "all" 
+            {selectedBusiness === "all"
               ? "Start collecting reviews from your customers to see analytics here."
-              : `No reviews found for ${businesses.find(b => b.id === selectedBusiness)?.name || "this business"}.`}
+              : `No reviews found for ${businesses.find((b) => b.id === selectedBusiness)?.name || "this business"}.`}
           </p>
         </div>
       </div>
@@ -744,7 +899,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
           title="Total Responses"
           value={data.totalResponses}
@@ -785,6 +940,18 @@ export default function AnalyticsPage() {
           }% of total`}
           trend={-3}
           trendLabel="decrease"
+        />
+        <StatCard
+          title="AI Generations"
+          value={data.totalAIGenerations}
+          icon={Sparkles}
+          subtitle="Templates generated"
+        />
+        <StatCard
+          title="AI Success Rate"
+          value={`${Math.round(data.aiSuccessRate)}%`}
+          icon={Target}
+          subtitle="Publish rate with AI"
         />
       </div>
 
@@ -890,7 +1057,7 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Rating by Form */}
-        <Card className="border-0 bg-white/80 p-6 backdrop-blur-sm dark:bg-slate-800/80">
+        {/* <Card className="border-0 bg-white/80 p-6 backdrop-blur-sm dark:bg-slate-800/80">
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Rating by Form
           </h3>
@@ -962,10 +1129,10 @@ export default function AnalyticsPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Card> */}
 
         {/* Rating Distribution */}
-        <Card className="border-0 bg-white/80 p-6 backdrop-blur-sm dark:bg-slate-800/80">
+        {/* <Card className="border-0 bg-white/80 p-6 backdrop-blur-sm dark:bg-slate-800/80">
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Rating Distribution
           </h3>
@@ -1007,8 +1174,348 @@ export default function AnalyticsPage() {
               </div>
             )}
           </div>
-        </Card>
+        </Card> */}
       </div>
+
+      {/* Data Table */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+        <div className="p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                All Reviews
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {filteredAndSortedReviews.length} review
+                {filteredAndSortedReviews.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search reviews..."
+                  value={tableSearchQuery}
+                  onChange={(e) => setTableSearchQuery(e.target.value)}
+                  className="h-9 w-48 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                />
+                <svg
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+
+              {/* Rating Filter */}
+              <Select
+                value={tableRatingFilter}
+                onValueChange={setTableRatingFilter}
+              >
+                <SelectTrigger className="h-9 w-32 border-slate-200 bg-white text-sm dark:border-slate-700 dark:bg-slate-900">
+                  <SelectValue placeholder="All Ratings" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ratings</SelectItem>
+                  <SelectItem value="5">5 Stars</SelectItem>
+                  <SelectItem value="4">4 Stars</SelectItem>
+                  <SelectItem value="3">3 Stars</SelectItem>
+                  <SelectItem value="2">2 Stars</SelectItem>
+                  <SelectItem value="1">1 Star</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Clear Filters */}
+              {(tableSearchQuery || tableRatingFilter !== "all") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setTableSearchQuery("");
+                    setTableRatingFilter("all");
+                  }}
+                  className="h-9 border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th
+                    className="cursor-pointer px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    onClick={() => handleSort("created_at")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Date
+                      {sortField === "created_at" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        ))}
+                    </div>
+                  </th>
+                  <th
+                    className="cursor-pointer px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    onClick={() => handleSort("customer_name")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Customer
+                      {sortField === "customer_name" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        ))}
+                    </div>
+                  </th>
+                  <th
+                    className="cursor-pointer px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    onClick={() => handleSort("stars")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Rating
+                      {sortField === "stars" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        ))}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Review
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Business
+                  </th>
+                  <th
+                    className="cursor-pointer px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    onClick={() => handleSort("generation_count")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      AI
+                      {sortField === "generation_count" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        ))}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {paginatedReviews.length > 0 ? (
+                  paginatedReviews.map((review) => (
+                    <tr
+                      key={review.id}
+                      className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                    >
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+                        {formatFullDate(review.created_at)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-white">
+                            {cleanCustomerName(review.customer_name)}
+                          </p>
+                          {review.customer_email && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              {review.customer_email}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {renderStars(review.stars)}
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {review.stars}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p
+                          className="max-w-xs truncate text-sm text-slate-600 dark:text-slate-300"
+                          title={review.review_text}
+                        >
+                          {review.review_text || "—"}
+                        </p>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+                        {review.businesses?.name || "—"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-center">
+                        {(review.generation_count || 0) > 0 ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                            <span className="text-sm text-slate-600 dark:text-slate-300">
+                              {review.generation_count}
+                            </span>
+                            {review.is_successful && (
+                              <TooltipProvider delayDuration={0}>
+                                <Tool>
+                                  <TooltipTrigger asChild>
+                                    <span className="cursor-auto rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                      ✓
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="text-xs"
+                                  >
+                                    <p>AI response was successfully used</p>
+                                  </TooltipContent>
+                                </Tool>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400 dark:text-slate-500">
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Filter className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          No reviews match your filters
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setTableSearchQuery("");
+                            setTableRatingFilter("all");
+                          }}
+                          className="mt-2"
+                        >
+                          Clear filters
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {filteredAndSortedReviews.length > 0 && (
+            <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-6 dark:border-slate-700 sm:flex-row">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Showing{" "}
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {Math.min(
+                    currentPage * ITEMS_PER_PAGE,
+                    filteredAndSortedReviews.length,
+                  )}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {filteredAndSortedReviews.length}
+                </span>{" "}
+                results
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 border-slate-200 dark:border-slate-700"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 border-slate-200 dark:border-slate-700"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        size="icon"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`h-8 w-8 ${
+                          currentPage === pageNum
+                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+                            : "border-slate-200 dark:border-slate-700"
+                        }`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 border-slate-200 dark:border-slate-700"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 border-slate-200 dark:border-slate-700"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

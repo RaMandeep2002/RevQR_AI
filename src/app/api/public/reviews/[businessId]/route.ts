@@ -22,7 +22,7 @@ export async function GET(
 
   const { data: business, error: businessError } = await adminClient
     .from("businesses")
-    .select("id,name,category,location")
+    .select("id,name,category,location,total_generations,successful_generations")
     .eq("id", businessId)
     .single();
 

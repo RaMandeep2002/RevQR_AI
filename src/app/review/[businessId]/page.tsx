@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState, use, useRef } from "react";
-import { Star, CheckCircle, AlertCircle, Globe } from "lucide-react";
+import {
+  Star,
+  CheckCircle,
+  AlertCircle,
+  Globe,
+  ArrowLeft,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { enforceWordLimit, wordCount } from "@/lib/utils";
@@ -60,6 +68,8 @@ const getStarLabel = (rating: number) => {
   return "Excellent Experience!";
 };
 
+type Step = 1 | 2 | 3;
+
 export default function ReviewPage({
   params,
 }: {
@@ -72,7 +82,7 @@ export default function ReviewPage({
   const [businessLanguages, setBusinessLanguages] = useState<string[]>([
     "en",
     "hi",
-  ]); // Store business languages
+  ]);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [stars, setStars] = useState(0);
@@ -87,11 +97,22 @@ export default function ReviewPage({
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [limitExceeded, setLimitExceeded] = useState(false);
+  const [draftReviewId, setDraftReviewId] = useState<string | null>(null);
   const hasRecordedScan = useRef(false);
+
+  // Personalised touch fields
+  const [enjoyedDishes, setEnjoyedDishes] = useState("");
+  const [serviceComments, setServiceComments] = useState("");
+
+  // Multi-step state
+  const [step, setStep] = useState<Step>(1);
 
   const words = useMemo(() => wordCount(reviewText), [reviewText]);
 
-  // Get available languages based on business settings
+  // Low-star reviews skip Step 2
+  const isLowStar = stars > 0 && stars <= 3;
+  const totalSteps = isLowStar ? 2 : 3;
+
   const availableLanguages = useMemo(() => {
     return INDIAN_LANGUAGES.filter((lang) =>
       businessLanguages.includes(lang.code),
@@ -102,27 +123,24 @@ export default function ReviewPage({
     const loadBusiness = async () => {
       const response = await fetch(`/api/businesses/${businessId}`);
       const json = await response.json();
-      console.log("response -------> ", json);
 
       const business = json.data;
       if (business?.limitExceeded) {
         setLimitExceeded(true);
       } else if (!hasRecordedScan.current) {
         hasRecordedScan.current = true;
-        console.log("hasRecordedScan ---> ", hasRecordedScan.current)
-        fetch(`/api/businesses/${businessId}/scan`, { method: "POST" }).catch(console.error);
+        fetch(`/api/businesses/${businessId}/scan`, {
+          method: "POST",
+        }).catch(console.error);
       }
 
       setBusinessName(business?.name ?? "Business");
       setBusinessCategory(business?.category ?? "Service");
       setGoogleBusinessUrl(business?.google_business_url ?? "");
 
-      // Get languages from business data, default to ['en', 'hi']
       const languages = business?.languages || ["en", "hi"];
-      // console.log(languages);
       setBusinessLanguages(languages);
 
-      // Set initial language based on browser preference or first available
       const browserLang = navigator.language.split("-")[0];
       const supportedLang = availableLanguages.find(
         (lang) => lang.code === browserLang,
@@ -135,6 +153,19 @@ export default function ReviewPage({
     };
     loadBusiness();
   }, [businessId]);
+
+  // Reset entire flow when stars change
+  const handleStarSelect = (value: number) => {
+    setStars(value);
+    setGeneratedOptions([]);
+    setReviewText("");
+    setGenerationCount(0);
+    setDraftReviewId(null);
+    setEnjoyedDishes("");
+    setServiceComments("");
+    setError("");
+    setSuccess("");
+  };
 
   const generateReview = async () => {
     if (!stars) return setError("Please select a star rating first.");
@@ -156,7 +187,33 @@ export default function ReviewPage({
     setError("");
     setSuccess("");
     setLoadingAI(true);
-    setGeneratedOptions([]);
+    // setGeneratedOptions([]);
+
+    const newGenerationCount = generationCount + 1;
+    let currentDraftId = draftReviewId;
+    
+    // Save draft review asynchronously to track generation attempt
+    fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reviewId: currentDraftId || undefined,
+        businessId,
+        customerName,
+        customerEmail,
+        stars,
+        reviewText: "", 
+        generationCount: newGenerationCount,
+        isSuccessful: false,
+      }),
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.data?.id) {
+          setDraftReviewId(json.data.id);
+        }
+      })
+      .catch(e => console.error("Failed to save draft review", e));
 
     const response = await fetch("/api/ai/generate-review", {
       method: "POST",
@@ -167,6 +224,8 @@ export default function ReviewPage({
         category: businessCategory,
         businessId,
         language: selectedLanguage,
+        enjoyedDishes: enjoyedDishes.trim() || undefined,
+        serviceComments: serviceComments.trim() || undefined,
       }),
     });
 
@@ -174,7 +233,18 @@ export default function ReviewPage({
     setLoadingAI(false);
     if (!response.ok) return setError(json.error || "AI generation failed");
 
-    setGeneratedOptions(json.options || []);
+    setGeneratedOptions((prev) => {
+      const newOptions = json.options || [];
+      const combined = [...prev, ...newOptions];
+      // Remove duplicates (case-insensitive, trimmed)
+      const seen = new Set<string>();
+      return combined.filter((opt: string) => {
+        const key = opt.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    });
     setGenerationCount((prev) => prev + 1);
   };
 
@@ -200,12 +270,17 @@ export default function ReviewPage({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        reviewId: draftReviewId || undefined,
         businessId: businessId,
         customerName,
         customerEmail,
         stars,
         reviewText,
-        language: selectedLanguage, // Add language to review
+        language: selectedLanguage,
+        enjoyedDishes: enjoyedDishes.trim() || undefined,
+        serviceComments: serviceComments.trim() || undefined,
+        generationCount,
+        isSuccessful: true,
       }),
     });
     const json = await response.json();
@@ -237,6 +312,7 @@ export default function ReviewPage({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          reviewId: draftReviewId || undefined,
           businessId: businessId,
           customerName,
           customerEmail,
@@ -244,7 +320,9 @@ export default function ReviewPage({
           reviewText,
           isPublic: false,
           type: "negative_feedback",
-          language: selectedLanguage, // Add language to feedback
+          language: selectedLanguage,
+          generationCount,
+          isSuccessful: true,
         }),
       });
 
@@ -311,6 +389,33 @@ export default function ReviewPage({
     return "🌐 Select Language";
   };
 
+  const hasPersonalization =
+    enjoyedDishes.trim().length > 0 || serviceComments.trim().length > 0;
+
+  // Step navigation guards
+  const canGoToStep2 = stars >= 4;
+  const canGoToStep3FromStep1 = stars >= 1 && customerName.trim().length > 0;
+  const canProceedFromStep2 = true; // personalisation is optional
+
+  // Next handler for Step 1
+  const handleStep1Next = () => {
+    setError("");
+    if (!customerName.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!stars) {
+      setError("Please select a star rating.");
+      return;
+    }
+    if (isLowStar) {
+      // Skip Step 2 for low-star
+      setStep(3);
+    } else {
+      setStep(2);
+    }
+  };
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12 md:px-6 bg-slate-50">
       <div className="w-full max-w-xl">
@@ -323,7 +428,6 @@ export default function ReviewPage({
               Service Temporarily Unavailable
             </h1>
             <p className="text-slate-600">
-              {" "}
               We're currently experiencing a temporary service interruption. Our
               team is working to restore full functionality as quickly as
               possible. Thank you for your patience, and please check back
@@ -332,6 +436,7 @@ export default function ReviewPage({
           </Card>
         ) : (
           <Card className="overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50 bg-white">
+            {/* Header */}
             <div
               className={`px-6 py-8 text-center text-white transition-all duration-500 ${getStarColor(stars)}`}
             >
@@ -361,8 +466,89 @@ export default function ReviewPage({
               )}
             </div>
 
+            {/* Step indicator (hidden on success screen) */}
+            {!success && !showFeedbackForm && (
+              <div className="px-6 pt-6 pb-2">
+                {/* Step progress bar */}
+                <div className="relative">
+                  {/* Background track */}
+                  <div className="absolute top-4 left-0 right-0 h-1 bg-slate-100 rounded-full mx-4" />
+
+                  {/* Animated progress fill */}
+                  <div
+                    className="absolute top-4 left-0 h-1 rounded-full mx-4 transition-all duration-500 ease-out"
+                    style={{
+                      width: `calc(${((step - 1) / (totalSteps - 1)) * 100}% - ${step === totalSteps ? "0px" : "0px"})`,
+                      maxWidth: "calc(100% - 2rem)",
+                      background: "linear-gradient(to right, #10b981, #3b82f6)",
+                    }}
+                  />
+
+                  {/* Step nodes */}
+                  <div className="relative flex justify-between">
+                    {Array.from({ length: totalSteps }).map((_, i) => {
+                      const stepNum = (i + 1) as Step;
+                      const isActive = step === stepNum;
+                      const isDone = step > stepNum;
+                      const labels = isLowStar
+                        ? ["Your Rating", "Feedback"]
+                        : ["Your Rating", "Personalise", "Review"];
+                      const label = labels[i];
+
+                      return (
+                        <div
+                          key={i}
+                          className="flex flex-col items-center"
+                          style={{ width: "fit-content" }}
+                        >
+                          {/* Node */}
+                          <div
+                            className={`relative flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
+                              isActive
+                                ? "bg-blue-600 text-white ring-4 ring-blue-100 shadow-lg shadow-blue-500/30 scale-110"
+                                : isDone
+                                  ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                                  : "bg-white text-slate-400 border-2 border-slate-200"
+                            }`}
+                          >
+                            {isDone ? (
+                              <CheckCircle
+                                className="h-5 w-5"
+                                strokeWidth={2.5}
+                              />
+                            ) : (
+                              <span>{stepNum}</span>
+                            )}
+
+                            {/* Pulse ring on active */}
+                            {isActive && (
+                              <span className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
+                            )}
+                          </div>
+
+                          {/* Label */}
+                          <span
+                            className={`mt-2 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors duration-300 ${
+                              isActive
+                                ? "text-blue-600"
+                                : isDone
+                                  ? "text-emerald-600"
+                                  : "text-slate-400"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="p-6 md:p-8">
               {success ? (
+                /* ============== SUCCESS SCREEN ============== */
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div
                     className={`rounded-full p-4 mb-4 ${
@@ -370,11 +556,7 @@ export default function ReviewPage({
                     }`}
                   >
                     {stars <= 3 ? (
-                      <AlertCircle
-                        className={`h-12 w-12 ${
-                          stars <= 3 ? "text-amber-500" : "text-emerald-500"
-                        }`}
-                      />
+                      <AlertCircle className="h-12 w-12 text-amber-500" />
                     ) : (
                       <CheckCircle className="h-12 w-12 text-emerald-500" />
                     )}
@@ -410,6 +592,7 @@ export default function ReviewPage({
                   </div>
                 </div>
               ) : showFeedbackForm ? (
+                /* ============== LOW-STAR FEEDBACK FORM ============== */
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 mb-4">
@@ -466,7 +649,8 @@ export default function ReviewPage({
                     </Button>
                   </div>
                 </div>
-              ) : (
+              ) : step === 1 ? (
+                /* ============== STEP 1: NAME + STARS ============== */
                 <div className="space-y-8">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
@@ -506,7 +690,6 @@ export default function ReviewPage({
                     </div>
                   </div>
 
-                  {/* Star Section */}
                   <div className="text-center">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
                       How was your experience?
@@ -515,12 +698,7 @@ export default function ReviewPage({
                       {[1, 2, 3, 4, 5].map((value) => (
                         <button
                           key={value}
-                          onClick={() => {
-                            setStars(value);
-                            setGeneratedOptions([]);
-                            setReviewText("");
-                            setGenerationCount(0);
-                          }}
+                          onClick={() => handleStarSelect(value)}
                           className="group relative transform transition-all hover:scale-125 active:scale-95"
                           aria-label={`${value} stars`}
                         >
@@ -535,36 +713,148 @@ export default function ReviewPage({
                       ))}
                     </div>
                     {stars > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <p
-                          className={`text-sm font-bold transition-all duration-300 ${
-                            stars <= 2
-                              ? "text-red-500"
-                              : stars === 3
-                                ? "text-amber-500"
-                                : stars === 4
-                                  ? "text-blue-500"
-                                  : "text-emerald-500"
-                          }`}
-                        >
-                          {
-                            [
-                              "Very Disappointing",
-                              "Needs Improvement",
-                              "Fair - Could be better",
-                              "Good!",
-                              "Excellent!",
-                            ][stars - 1]
-                          }
-                        </p>
-                      </div>
+                      <p
+                        className={`mt-4 text-sm font-bold transition-all duration-300 ${
+                          stars <= 2
+                            ? "text-red-500"
+                            : stars === 3
+                              ? "text-amber-500"
+                              : stars === 4
+                                ? "text-blue-500"
+                                : "text-emerald-500"
+                        }`}
+                      >
+                        {
+                          [
+                            "Very Disappointing",
+                            "Needs Improvement",
+                            "Fair - Could be better",
+                            "Good!",
+                            "Excellent!",
+                          ][stars - 1]
+                        }
+                      </p>
                     )}
                   </div>
 
+                  {error && (
+                    <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-200 flex items-center gap-3">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+                        !
+                      </span>
+                      {error}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleStep1Next}
+                    disabled={!canGoToStep3FromStep1}
+                    className={`w-full py-6 text-base font-bold rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-white ${
+                      stars <= 2
+                        ? "bg-red-500 hover:bg-red-600"
+                        : stars === 3
+                          ? "bg-amber-500 hover:bg-amber-600"
+                          : stars === 4
+                            ? "bg-blue-500 hover:bg-blue-600"
+                            : stars === 5
+                              ? "bg-emerald-500 hover:bg-emerald-600"
+                              : "bg-slate-800 hover:bg-slate-700"
+                    }`}
+                  >
+                    {isLowStar ? "Continue to Feedback" : "Continue"}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              ) : step === 2 ? (
+                /* ============== STEP 2: PERSONALISED TOUCH ============== */
+                <div className="space-y-6">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-blue-100 p-2 shrink-0">
+                      <Sparkles className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        Give your review a personalised touch
+                      </h3>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Optional — helps us craft a review that sounds just like
+                        you
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="enjoyed-dishes"
+                        className="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                      >
+                        what did you Like here?
+                      </label>
+                      <Input
+                        id="enjoyed-dishes"
+                        value={enjoyedDishes}
+                        onChange={(e) => setEnjoyedDishes(e.target.value)}
+                        placeholder="e.g. Great food, friendly staff, cozy ambience..."
+                        className="rounded-xl border-slate-200 bg-white focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400 text-black text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="service-comments"
+                        className="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                      >
+                        Comments on service
+                      </label>
+                      <Input
+                        id="service-comments"
+                        value={serviceComments}
+                        onChange={(e) => setServiceComments(e.target.value)}
+                        placeholder="e.g. Friendly staff, quick service, warm ambience..."
+                        className="rounded-xl border-slate-200 bg-white focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400 text-black text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {hasPersonalization && (
+                    <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 border border-emerald-100">
+                      <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <p className="text-[11px] text-emerald-700">
+                        Your personalised details will be used to craft the
+                        review
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(1)}
+                      className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900 transition-colors duration-200 py-6"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setError("");
+                        if (canProceedFromStep2) setStep(3);
+                      }}
+                      className="flex-1 py-6 text-base font-bold rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* ============== STEP 3: AI + FINAL REVIEW ============== */
+                <div className="space-y-6">
                   {/* AI Generation Section - Only for 4+ stars */}
                   {stars >= 4 && availableLanguages.length > 0 && (
                     <div className="space-y-4">
-                      {/* Language Selector - Only show if multiple languages available */}
+                      {/* Language Selector */}
                       {availableLanguages.length > 1 && (
                         <div className="relative">
                           <button
@@ -602,6 +892,7 @@ export default function ReviewPage({
                                       setSelectedLanguage(lang.code);
                                       setShowLanguageSelector(false);
                                       setGeneratedOptions([]);
+                                      setGenerationCount(0); // ✅ ADD THIS
                                     }}
                                     className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-blue-50 ${
                                       selectedLanguage === lang.code
@@ -657,6 +948,12 @@ export default function ReviewPage({
                               <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                                 Choose your template
+                                {generationCount < 2 &&
+                                  generatedOptions.length > 0 && (
+                                    <span className="ml-1 normal-case font-normal text-slate-400">
+                                      (or generate more)
+                                    </span>
+                                  )}
                               </p>
                             </div>
                             <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
@@ -669,19 +966,12 @@ export default function ReviewPage({
                               <button
                                 key={i}
                                 onClick={() => selectOption(opt)}
-                                className="group relative min-w-[320px] max-w-[320px] flex-shrink-0 snap-start rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                className="group relative min-w-[280px] max-w-[280px] flex-shrink-0 snap-start rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                               >
                                 <div className="mb-4 flex items-start justify-between">
                                   <div className="rounded-full bg-blue-50 p-2 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                                    <svg
-                                      className="h-4 w-4"
-                                      fill="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                                    </svg>
+                                    <Sparkles className="h-4 w-4" />
                                   </div>
-
                                   <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold tracking-wide text-slate-500">
                                     OPTION {i + 1}
                                   </span>
@@ -693,23 +983,10 @@ export default function ReviewPage({
 
                                 <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                                   <span className="text-xs font-medium text-slate-400">
-                                    Tap to use this review
+                                    Tap to use
                                   </span>
-
                                   <div className="rounded-full bg-slate-100 p-2 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600">
-                                    <svg
-                                      className="h-4 w-4 text-slate-400 group-hover:text-white"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2.5}
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M5 13l4 4L19 7"
-                                      />
-                                    </svg>
+                                    <CheckCircle className="h-4 w-4 text-slate-400 group-hover:text-white" />
                                   </div>
                                 </div>
                               </button>
@@ -720,7 +997,7 @@ export default function ReviewPage({
                     </div>
                   )}
 
-                  {/* Edit Section */}
+                  {/* Final Review / Feedback Editor */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-end">
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -740,9 +1017,9 @@ export default function ReviewPage({
                       placeholder={
                         stars <= 3
                           ? "Please share your honest feedback so we can improve..."
-                          : "Describe your experience here..."
+                          : "Describe your experience here, or pick a template above..."
                       }
-                      className="rounded-2xl border-slate-200 bg-white p-4 text-slate-700 focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-2xl border-slate-200 bg-white p-4 text-slate-700 focus:ring-2 focus:ring-blue-500/20 min-h-[140px]"
                     />
                   </div>
 
@@ -755,23 +1032,32 @@ export default function ReviewPage({
                     </div>
                   )}
 
-                  <Button
-                    className={`w-full py-8 text-xl font-black rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0 ${
-                      stars <= 2
-                        ? "bg-red-500 hover:bg-red-600 text-white"
-                        : stars === 3
-                          ? "bg-amber-500 hover:bg-amber-600 text-white"
-                          : stars === 4
-                            ? "bg-blue-500 hover:bg-blue-600 text-white"
-                            : stars === 5
-                              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                              : "bg-slate-800 hover:bg-slate-700 text-white"
-                    }`}
-                    onClick={saveReview}
-                    disabled={saving || !reviewText.trim()}
-                  >
-                    {stars <= 3 ? "Submit Feedback" : "Publish Review"}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(isLowStar ? 1 : 2)}
+                      className="border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900 transition-colors duration-200 py-6 px-5"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      className={`flex-1 py-6 text-base font-bold rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0 ${
+                        stars <= 2
+                          ? "bg-red-500 hover:bg-red-600 text-white"
+                          : stars === 3
+                            ? "bg-amber-500 hover:bg-amber-600 text-white"
+                            : stars === 4
+                              ? "bg-blue-500 hover:bg-blue-600 text-white"
+                              : stars === 5
+                                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                : "bg-slate-800 hover:bg-slate-700 text-white"
+                      }`}
+                      onClick={saveReview}
+                      disabled={saving || !reviewText.trim()}
+                    >
+                      {stars <= 3 ? "Submit Feedback" : "Publish Review"}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
